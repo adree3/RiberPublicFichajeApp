@@ -5,6 +5,7 @@ import 'dart:convert';
 class FichajeService {
   static const String _baseUrl = "http://localhost:9999/fichajes";
 
+  /// GET /fichajes/usuario/{idUsuario}
   static Future<List<Fichaje>> getFichajesPorUsuario(int idUsuario) async {
     final url = "$_baseUrl/usuario/$idUsuario";
     final response = await http.get(Uri.parse(url));
@@ -16,37 +17,33 @@ class FichajeService {
     }
   }
 
-  static Future<Fichaje> crearFichaje(int idUsuario, {required DateTime fechaHoraEntrada, String? ubicacion, bool nfcUsado = false}) async {
-
-    final uri = Uri.parse("$_baseUrl/nuevaFichaje?idUsuario=$idUsuario");
-    final body = jsonEncode({
-      "fechaHoraEntrada": fechaHoraEntrada.toIso8601String(),
-      "ubicacion": ubicacion,
-      "nfcUsado": nfcUsado,
+  /// POST /fichajes/abrirFichaje/{idUsuario}
+  static Future<Fichaje> abrirFichaje(int idUsuario) async {
+    final uri = Uri.parse('$_baseUrl/abrirFichaje/$idUsuario');
+    final resp = await http.post(uri, headers: {
+      'Content-Type': 'application/json',
     });
-    final resp = await http.post(uri,
-      headers: {'Content-Type': 'application/json'},
-      body: body
-    );
-    if (resp.statusCode == 201) {
-      return Fichaje.fromJson(jsonDecode(resp.body));
-    }
-    throw Exception("Error al crear fichaje: ${resp.body}");
-  }
-
-  static Future<Fichaje> cerrarFichaje(int idFichaje, {required DateTime fechaHoraSalida}) async {
-
-    final uri = Uri.parse("$_baseUrl/$idFichaje/cerrarFichaje");
-    final body = jsonEncode({
-      "fechaHoraSalida": fechaHoraSalida.toIso8601String(),
-    });
-    final resp = await http.put(uri,
-      headers: {'Content-Type': 'application/json'},
-      body: body
-    );
     if (resp.statusCode == 200) {
       return Fichaje.fromJson(jsonDecode(resp.body));
+    } else if (resp.statusCode == 404) {
+      throw Exception('Usuario no encontrado');
     }
-    throw Exception("Error al cerrar fichaje: ${resp.body}");
+    throw Exception('Error al abrir fichaje (${resp.statusCode})');
+  }
+
+  /// PUT /fichajes/cerrarFichaje/{idUsuario}
+  static Future<Fichaje> cerrarFichaje(int idUsuario) async {
+    final uri = Uri.parse('$_baseUrl/cerrarFichaje/$idUsuario');
+    final resp = await http.put(uri, headers: {
+      'Content-Type': 'application/json',
+    });
+    if (resp.statusCode == 200) {
+      return Fichaje.fromJson(jsonDecode(resp.body));
+    } else if (resp.statusCode == 404) {
+      throw Exception('Usuario no encontrado');
+    } else if (resp.statusCode == 409) {
+      throw Exception('No hay jornada abierta hoy');
+    }
+    throw Exception('Error al cerrar fichaje (${resp.statusCode})');
   }
 }

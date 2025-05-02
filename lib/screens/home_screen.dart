@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +10,7 @@ import 'package:riber_republic_fichaje_app/screens/perfil_screen.dart';
 import 'package:riber_republic_fichaje_app/screens/fichajes_screen.dart';
 import 'package:riber_republic_fichaje_app/service/fichaje_service.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
+import 'package:riber_republic_fichaje_app/utils/fichajeUtils.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,16 +22,26 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  static final List<Widget> _screens = [
-    const HomeContent(),  
-    const FichajesScreen(),
-    const PerfilScreen()
+  // esto lo utilizo para que cuando navegue a fichajes sepa que tiene que actualizar los fichajes
+  final GlobalKey<FichajesScreenState> _fichajesKey = GlobalKey();
+
+  // conjunto de pantallas para navegar. En la de fichajes le añado la key de arriba
+  late final List<Widget> _screens = [
+    const HomeContent(),
+    FichajesScreen(key: _fichajesKey),
+    const PerfilScreen(),
   ];
+
+  // se actualiza la pantalla seleccionada y si es la de fichajes se recargan los fichajes
   void _onItemTapped(int index) {
     setState(() {
       _currentIndex = index;
     });
+    if (index == 1) {
+      _fichajesKey.currentState?.recargarFichajes();
+    }
   }
+
   PreferredSizeWidget? _buildAppBar() {
     if (_currentIndex == 2) return null;
     return AppBar(
@@ -51,7 +64,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[200],
-      body: _screens[_currentIndex], 
+      // IndexStack, lo utilizo para que cuando esta pantalla este en segundo plano, siga en memoria (lo necesito para el timer)
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
+      ),
       appBar: _buildAppBar(),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Color(0xFF76BCAD),
@@ -76,115 +93,147 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
   @override
   State<HomeContent> createState() => _HomeContentState();
 }
 
-class _HomeContentState extends State<HomeContent> {
+class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClientMixin<HomeContent>{
+
+  // es necesario por el AutomaticKeepAliveClientMixin para que el dispose, no elimine el state aunque no este visible
+  @override
+  bool get wantKeepAlive => true;
+
+  // sirve para ejecutar solo una vez el cargaInicial.
+  late Future<void> _initFuture;
+
+  // inicializo trabjando a false
   bool _trabajando = false;
-  int? _fichajeIdEnCurso;
+  // sirve para guardar la sesion que recibo del back
+  Fichaje? _fichajeEnCurso;
+  // sirve para saber cuando empece el fichaje, para calcular el tiempo real 
+  DateTime? _inicioActual;
+  // es el timer 
+  Timer? _timer;
+
+  // lista de fichajes de hoy para calcular el tiempo trabajado
+  List<Fichaje> _fichajesDeHoy = [];
+  // sirve para guardar el horario de hoy recibido del back
+  HorarioHoy? _horarioHoy;
+  // guarda la suma del tiempo de todos los fichajes de hoy que esten cerrados
+  Duration _acumulado = Duration.zero;
 
   @override
   void initState() {
     super.initState();
-    _compruebaFichajeAbierto();
+    _initFuture = _cargaInicial();
   }
 
-  Future<void> _compruebaFichajeAbierto() async {
+  Future<void> _cargaInicial() async {
+    // usuario de la sesión actual
     final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario!;
+    // horario de hoy para el usuario
+    final horario = await UsuarioService.getHorarioDeHoy(usuario.id);
+    // fichajes realizados por el usuario
     final fichajes = await FichajeService.getFichajesPorUsuario(usuario.id);
-    final hoy = DateTime.now();
-    
-    final abierto = fichajes.firstWhereOrNull((f) =>
-      f.fechaHoraEntrada != null &&
-      f.fechaHoraEntrada!.day == hoy.day &&
-      f.fechaHoraSalida == null
-    );
-    
-    if (abierto != null) {
-      setState(() {
-        _trabajando = true;
-        _fichajeIdEnCurso = abierto.id;
-      });
+
+    // filtra los fichajes para quedarme con los fichajes de hoy
+    _fichajesDeHoy = FichajeUtils.filtradosDeHoy(fichajes);
+
+
+    // obtengo el primer fichaje de hoy que no tenga hora de salida
+    _fichajeEnCurso = _fichajesDeHoy.firstWhereOrNull((f) => f.fechaHoraSalida == null);
+    // si hay un fichaje en curso sera true (para el boton rojo o azul)
+    _trabajando   = _fichajeEnCurso != null;
+    // guardo el horario en otra variable privada
+    _horarioHoy   = horario;
+
+    // calcula el tiempo trabajado contando solo los fichajes con hora de salida
+    _acumulado = FichajeUtils.calcularFichajesHoy(_fichajesDeHoy);
+    /*_acumulado = _fichajesDeHoy.fold(Duration.zero, (sum, f) {
+      if (f.fechaHoraSalida != null) {
+        return sum + f.fechaHoraSalida!.difference(f.fechaHoraEntrada!);
+      }
+      return sum;
+    });*/
+
+    // si ya había una sesión abierta, inicia el timer
+    if (_trabajando) {
+      _inicioActual = _fichajeEnCurso!.fechaHoraEntrada;
+      _iniciarTimer();
     }
+  }
+
+  // inicia un timer
+  void _iniciarTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      setState(() {});
+    });
+  }
+
+  // cuando no se este visualizando la pantalla, para el timer
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _onBotonPulsado() async {
+    // obtengo el usuario que ha iniciado sesi
     final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario!;
+
     if (!_trabajando) {
-      final creado = await FichajeService.crearFichaje(
-        usuario.id,
-        fechaHoraEntrada: DateTime.now(),
-        ubicacion: "Oficina Principal",
-        nfcUsado: true,
-      );
+      // Abre o reabre el fichaje de hoy
+      final fichaje = await FichajeService.abrirFichaje(usuario.id);
       setState(() {
-        _trabajando = true;
-        _fichajeIdEnCurso = creado.id;
+        _fichajeEnCurso = fichaje;
+        _trabajando     = true;
+        _inicioActual   = fichaje.fechaHoraEntrada;
       });
+      _iniciarTimer();
     } else {
-      // Termina jornada
-      await FichajeService.cerrarFichaje(
-        _fichajeIdEnCurso!,
-        fechaHoraSalida: DateTime.now(),
-      );
+      _timer?.cancel();
+      // Cierra el fichaje de hoy
+      final fichajeCerrado = await FichajeService.cerrarFichaje(usuario.id);
       setState(() {
-        _trabajando = false;
-        _fichajeIdEnCurso = null;
+        _trabajando   = false;
+        // Suma al tiempo total lo de este fichaje
+        if (_inicioActual != null && fichajeCerrado.fechaHoraSalida != null) {
+          _acumulado += fichajeCerrado.fechaHoraSalida!
+              .difference(_inicioActual!);
+        }
+        _fichajeEnCurso = null;
+        _inicioActual   = null;
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
-    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
-    final int? idUsuario = usuario?.id;
-
-    if (idUsuario == null) {
-      return const Center(child: Text("No hay usuario logueado"));
-    }
-
-    return FutureBuilder(
-      future: Future.wait([
-        UsuarioService.getHorarioDeHoy(idUsuario),
-        FichajeService.getFichajesPorUsuario(idUsuario),
-      ]),
-      builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    super.build(context);
+    return FutureBuilder<void>(
+      future: _initFuture,
+      builder: (ctx, snap) {
+        if (snap.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
-        if (!snapshot.hasData) {
-          return const Center(child: Text('No se pudo cargar la información.'));
-        }
-
-        final HorarioHoy horarioHoy = snapshot.data![0] as HorarioHoy;
-        final List<Fichaje> fichajes = snapshot.data![1] as List<Fichaje>;
-
-        final now = DateTime.now();
-        final fichajesDeHoy = fichajes.where((f) =>
-          f.fechaHoraEntrada != null &&
-          f.fechaHoraEntrada!.day == now.day &&
-          f.fechaHoraEntrada!.month == now.month &&
-          f.fechaHoraEntrada!.year == now.year
-        ).toList();
-
-        Duration horasTrabajadas = Duration.zero;
-        if (fichajesDeHoy.isNotEmpty) {
-          final fichajeDeHoy = fichajesDeHoy.first;
-          if (fichajeDeHoy.fechaHoraSalida != null) {
-            horasTrabajadas = fichajeDeHoy.fechaHoraSalida!.difference(fichajeDeHoy.fechaHoraEntrada!);
-          }
-        }
+        if (_horarioHoy == null) {
+          return const Center(child: Text("Error cargando horario"));
+        } 
+        // obtengo el momento
+        final ahora = DateTime.now();
+        // suma todas las sesiones cerradas de hoy, si estoy en jornada calcula la diferencia que llevo en jornada
+        final total = _acumulado +
+          (_trabajando && _inicioActual != null
+            ? ahora.difference(_inicioActual!)
+            : Duration.zero);
 
         return SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.only(top: 40, left: 20, right: 20, bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircleAvatar(
                   radius: 80,
@@ -192,82 +241,70 @@ class _HomeContentState extends State<HomeContent> {
                   child: Icon(Icons.image, size: 60, color: Colors.grey[700]),
                 ),
                 const SizedBox(height: 10),
-                Text(
-                  "¡Hola ${usuario?.nombre ?? 'Usuario'}!",
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF008080),
-                  ),
+                Text("¡Hola ${Provider.of<UsuarioProvider>(context, listen: false).usuario?.nombre ?? 'Usuario'}!",
+                  style: const TextStyle(fontSize: 32,fontWeight: FontWeight.bold, color: Color(0xFF008080)),
                 ),
                 const SizedBox(height: 40),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        children: [
-                          const Text("Horas trabajadas", style: TextStyle(fontSize: 16)),
-                          const SizedBox(height: 8),
-                          Text(
-                            _formateaDuracion(horasTrabajadas),
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFF57C00),
-                            ),
+                
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      children: [
+                        const Text("Horas trabajadas", style: TextStyle(fontSize: 16)),
+                        const SizedBox(height: 8),
+                        Text(_formateaDuracion(total),
+                          style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFF57C00)
                           ),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          const Text("Horas estimadas", style: TextStyle(fontSize: 16)),
-                          const SizedBox(height: 8),
-                          Text(
-                            _formateaDuracion(horarioHoy.horasEstimadas),
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF00796B),
-                            ),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        const Text("Horas estimadas", style: TextStyle(fontSize: 16)),
+                        const SizedBox(height: 8),
+                        Text(_formateaDuracion(_horarioHoy!.horasEstimadas),
+                          style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF00796B)
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 25),
-
                 Row(
                   children: [
                     Expanded(
-                      child: Container(height: 3, color: const Color(0xFFF57C00)),
+                      child: Container(
+                        height: 3,
+                        color: Color(0xFFF57C00), 
+                      ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Container(height: 3, color: const Color(0xFF00796B)),
+                      child: Container(
+                        height: 3,
+                        color: Color(0xFF00796B),
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 70),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _onBotonPulsado, 
+                    onPressed: _onBotonPulsado,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 25),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      textStyle: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold
-                        ),
+                      textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       backgroundColor: _trabajando ? Colors.red : Colors.blue,
                     ),
-                    child:  Text(
+                    child: Text(
                       _trabajando ? "FINALIZAR JORNADA" : "EMPEZAR JORNADA",
                       style: const TextStyle(color: Colors.white),
                     ),
@@ -281,11 +318,11 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
+  // formatea un duration al formato (HH:MM:SS) siempre con dos digitos
   String _formateaDuracion(Duration duracion) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final horas = twoDigits(duracion.inHours);
-    final minutos = twoDigits(duracion.inMinutes.remainder(60));
-    final segundos = twoDigits(duracion.inSeconds.remainder(60));
-    return "$horas:$minutos:$segundos";
+    String two(int n) => n.toString().padLeft(2, '0');
+    return "${two(duracion.inHours)}:"
+           "${two(duracion.inMinutes.remainder(60))}:"
+           "${two(duracion.inSeconds.remainder(60))}";
   }
 }

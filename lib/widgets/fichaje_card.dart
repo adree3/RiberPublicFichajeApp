@@ -14,26 +14,18 @@ class FichajeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Duration? horasTrabajadas = (fichaje.fechaHoraEntrada != null && fichaje.fechaHoraSalida != null)
-        ? fichaje.fechaHoraSalida!.difference(fichaje.fechaHoraEntrada!)
-        : null;
-
+    // Día y fecha
     final DateTime? dia = fichaje.fechaHoraEntrada ?? fichaje.fechaHoraSalida;
     final String nombreDia = dia != null ? _getDiaSemana(dia.weekday) : "Desconocido";
-    final String fechaStr = dia != null ? "${dia.day}/${dia.month}/${dia.year}" : "";
+    final String fechaStr  = dia != null ? "${dia.day}/${dia.month}/${dia.year}" : "";
 
-    late Color colorHorasTrabajadas;
-    late String textoHorasTrabajadas;
-    if (horasTrabajadas == null) {
-      colorHorasTrabajadas = Colors.red;
-      textoHorasTrabajadas = "No trabajado";
-    } else if (horasTrabajadas < horarioHoy.horasEstimadas) {
-      colorHorasTrabajadas = Colors.red;
-      textoHorasTrabajadas = _formateaDuracion(horasTrabajadas);
-    } else {
-      colorHorasTrabajadas = Colors.green;
-      textoHorasTrabajadas = _formateaDuracion(horasTrabajadas);
-    }
+    // Color y texto según totalTrabajado vs estimadas
+    final colorTotal = totalTrabajado < horarioHoy.horasEstimadas
+      ? Colors.red
+      : Colors.green;
+    final textoTotal = totalTrabajado == Duration.zero
+      ? "No trabajado"
+      : _formateaDuracion(totalTrabajado);
 
     return Container(
       decoration: BoxDecoration(
@@ -44,40 +36,31 @@ class FichajeCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Día y fecha
           Row(
             children: [
-              Text(
-                nombreDia,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
+              Text(nombreDia, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const Spacer(),
-              Text(
-                fechaStr,
-                style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-              ),
+              Text(fechaStr, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
             ],
           ),
-          const SizedBox(height: 10),
+          const Divider(height: 20, thickness: 1),
+          // Horas estimadas
           const Text("Horas estimadas:", style: TextStyle(fontSize: 15)),
           Text(
             _formateaDuracion(horarioHoy.horasEstimadas),
-            style: const TextStyle(
-              color: Color(0xFFF57C00),
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+            style: const TextStyle(color: Color(0xFFF57C00), fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 3),
+
+          // Horario
           Text("Horario: ${horarioHoy.horaEntrada} - ${horarioHoy.horaSalida}"),
-          const SizedBox(height: 3),
-          const Text("Horas trabajadas:", style: TextStyle(fontSize: 15)),
+
+          // Solo Total trabajado hoy
+          const Text("Total horas hoy:", style: TextStyle(fontSize: 15)),
           Text(
-            textoHorasTrabajadas,
-            style: TextStyle(
-              color: colorHorasTrabajadas,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+            textoTotal,
+            style: TextStyle(color: colorTotal, fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ],
       ),
@@ -85,31 +68,23 @@ class FichajeCard extends StatelessWidget {
   }
 
   String _formateaDuracion(Duration duracion) {
-    String twoDigits(int n) => n.toString().padLeft(2, "0");
-    final horas = twoDigits(duracion.inHours);
-    final minutos = twoDigits(duracion.inMinutes.remainder(60));
-    final segundos = twoDigits(duracion.inSeconds.remainder(60));
-    return "$horas:$minutos:$segundos";
+    String two(int n) => n.toString().padLeft(2, "0");
+    final h = two(duracion.inHours);
+    final m = two(duracion.inMinutes.remainder(60));
+    final s = two(duracion.inSeconds.remainder(60));
+    return "$h:$m:$s";
   }
 
   String _getDiaSemana(int weekday) {
     switch (weekday) {
-      case 1:
-        return "Lunes";
-      case 2:
-        return "Martes";
-      case 3:
-        return "Miércoles";
-      case 4:
-        return "Jueves";
-      case 5:
-        return "Viernes";
-      case 6:
-        return "Sábado";
-      case 7:
-        return "Domingo";
-      default:
-        return "Desconocido";
+      case 1: return "Lunes";
+      case 2: return "Martes";
+      case 3: return "Miércoles";
+      case 4: return "Jueves";
+      case 5: return "Viernes";
+      case 6: return "Sábado";
+      case 7: return "Domingo";
+      default: return "Desconocido";
     }
   }
 }
