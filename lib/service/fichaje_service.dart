@@ -2,6 +2,8 @@ import 'package:http/http.dart' as http;
 import 'package:riber_republic_fichaje_app/model/fichaje.dart';
 import 'dart:convert';
 
+import 'package:riber_republic_fichaje_app/model/totalHorasHoy.dart';
+
 class FichajeService {
   static const String _baseUrl = "http://localhost:9999/fichajes";
 
@@ -17,33 +19,45 @@ class FichajeService {
     }
   }
 
+  /// GET /fichajes/totalHorasHoy/{idUsuario}
+  static Future<TotalHorasHoy> getTotalHorasHoy(int idUsuario) async {
+    final uri = Uri.parse("$_baseUrl/totalHorasHoy/$idUsuario");
+    final response = await http.get(uri, headers: {
+      'Content-Type': 'application/json',
+    });
+    if (response.statusCode == 200) {
+      return TotalHorasHoy.fromJson(jsonDecode(response.body));
+    }
+    throw Exception('Error al obtener total horas hoy (${response.statusCode})');
+  }
+
   /// POST /fichajes/abrirFichaje/{idUsuario}
   static Future<Fichaje> abrirFichaje(int idUsuario) async {
     final uri = Uri.parse('$_baseUrl/abrirFichaje/$idUsuario');
-    final resp = await http.post(uri, headers: {
+    final response = await http.post(uri, headers: {
       'Content-Type': 'application/json',
     });
-    if (resp.statusCode == 200) {
-      return Fichaje.fromJson(jsonDecode(resp.body));
-    } else if (resp.statusCode == 404) {
+    if (response.statusCode == 200) {
+      return Fichaje.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 404) {
       throw Exception('Usuario no encontrado');
     }
-    throw Exception('Error al abrir fichaje (${resp.statusCode})');
+    throw Exception('Error al abrir fichaje (${response.statusCode})');
   }
 
   /// PUT /fichajes/cerrarFichaje/{idUsuario}
   static Future<Fichaje> cerrarFichaje(int idUsuario) async {
     final uri = Uri.parse('$_baseUrl/cerrarFichaje/$idUsuario');
-    final resp = await http.put(uri, headers: {
+    final response = await http.put(uri, headers: {
       'Content-Type': 'application/json',
     });
-    if (resp.statusCode == 200) {
-      return Fichaje.fromJson(jsonDecode(resp.body));
-    } else if (resp.statusCode == 404) {
+    if (response.statusCode == 200) {
+      return Fichaje.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 404) {
       throw Exception('Usuario no encontrado');
-    } else if (resp.statusCode == 409) {
+    } else if (response.statusCode == 409) {
       throw Exception('No hay jornada abierta hoy');
     }
-    throw Exception('Error al cerrar fichaje (${resp.statusCode})');
+    throw Exception('Error al cerrar fichaje (${response.statusCode})');
   }
 }

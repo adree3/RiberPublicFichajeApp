@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:riber_republic_fichaje_app/model/fichaje.dart';
 import 'package:riber_republic_fichaje_app/model/horarioHoy.dart';
+import 'package:riber_republic_fichaje_app/model/totalHorasHoy.dart';
 import 'package:riber_republic_fichaje_app/providers/usuario_provider.dart';
 import 'package:riber_republic_fichaje_app/screens/login_screen.dart';
 import 'package:riber_republic_fichaje_app/service/fichaje_service.dart';
@@ -19,30 +20,29 @@ class FichajesScreen extends StatefulWidget {
 }
 
 class FichajesScreenState extends State<FichajesScreen> {
-  Timer? _timer;
 
   late Future<HorarioHoy> _horarioFuture;
   late Future<List<Fichaje>> _fichajesFuture;
+  late Future<TotalHorasHoy> _totalHoyFuture;
+
   int? _idUsuario;
   
   @override
   void initState() {
     super.initState();
     __cargarUsuarioYFuturos();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() {});
-    });
   }
 
 
 
-  // metodo para coger el usuario del provider y obtener tanto el horario de hoy como los fichajes del usuario
+  // metodo para coger el usuario del provider y obtener tanto el horario de hoy, los fichajes del usuario y el total trabajado hoy
   void __cargarUsuarioYFuturos() {
     final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
     _idUsuario = usuario?.id;
     if (_idUsuario != null) {
       _horarioFuture  = UsuarioService.getHorarioDeHoy(_idUsuario!);
       _fichajesFuture = FichajeService.getFichajesPorUsuario(_idUsuario!);
+      _totalHoyFuture = FichajeService.getTotalHorasHoy(_idUsuario!);
     }
   }
 
@@ -52,13 +52,20 @@ class FichajesScreenState extends State<FichajesScreen> {
       setState(() {
         // vuelve a crear el future para forzar la llamada a la API
         _fichajesFuture = FichajeService.getFichajesPorUsuario(_idUsuario!);
+        _totalHoyFuture = FichajeService.getTotalHorasHoy(_idUsuario!);
       });
     }
   }
+  // metodo para que el formato sea (HH:mm:ss)
+  Duration _parseDuration(String hms) {
+    final parts = hms.split(':').map(int.parse).toList();
+    return Duration(hours: parts[0], minutes: parts[1], seconds: parts[2]);
+  }
 
+
+ 
   @override
   Widget build(BuildContext context) {
-    List<Fichaje> _fichajesDeHoy = [];
     final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
     // si el usuario es null vuelve al login, para que se logge, 
     //utilizo esta forma ya que si utilizo el navigator.push directamente da un error de setState.
@@ -77,71 +84,59 @@ class FichajesScreenState extends State<FichajesScreen> {
       body: SafeArea(
         child: FutureBuilder<HorarioHoy>(
           future: _horarioFuture,
-          builder: (context, horarioSnapshot) {
-            if (horarioSnapshot.connectionState == ConnectionState.waiting) {
+          builder: (context, horSnap) {
+            if (horSnap.connectionState != ConnectionState.done) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (horarioSnapshot.hasError) {
-              return Center(child: Text("Error cargando horario: ${horarioSnapshot.error}"));
+            if (horSnap.hasError) {
+              return Center(child: Text("Error horario: ${horSnap.error}"));
             }
-            if (!horarioSnapshot.hasData || horarioSnapshot.data == null) {
-              return const Center(child: Text("No hay horario para hoy."));
-            }
+            final horarioHoy = horSnap.data!;
 
-            final horarioHoy = horarioSnapshot.data!;
+            return FutureBuilder<List<Fichaje>>(
+              future: _fichajesFuture,
+              builder: (context, fichSnap) {
+                if (fichSnap.connectionState != ConnectionState.done) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (fichSnap.hasError) {
+                  return Center(child: Text("Error fichajes: ${fichSnap.error}"));
+                }
+                final allFichajes = fichSnap.data!;
+                final fichajesHoy = FichajeUtils.filtradosDeHoy(allFichajes);
 
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 6),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          "Fichajes de ${usuario!.nombre}",
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 18),
-                  child: Divider(thickness: 1.5),
-                ),
-                Expanded(
-                  child: FutureBuilder<List<Fichaje>>(
-                    future: _fichajesFuture,
-                    builder: (context, fichajeSnapshot) {
-                      if (fichajeSnapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (fichajeSnapshot.hasError) {
-                        return Center(child: Text("Error: ${fichajeSnapshot.error}"));
-                      }
-                      if (!fichajeSnapshot  .hasData || fichajeSnapshot.data!.isEmpty) {
-                        return const Center(child: Text("No hay fichajes"));
-                      }
-                      final fichajes = fichajeSnapshot.data!;
-                      _fichajesDeHoy = FichajeUtils.filtradosDeHoy(fichajes);
+                return FutureBuilder<TotalHorasHoy>(
+                  future: _totalHoyFuture,
+                  builder: (context, totSnap) {
+                    if (totSnap.connectionState != ConnectionState.done) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (totSnap.hasError) {
+                      return Center(child: Text("Error total horas: ${totSnap.error}"));
+                    }
+                    // Parseamos "HH:mm:ss" a Duration
+                    final parts = totSnap.data!.totalHoras.split(':').map(int.parse).toList();
+                    final totalHoy = Duration(
+                      hours: parts[0],
+                      minutes: parts[1],
+                      seconds: parts[2],
+                    );
 
-
-                      return ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                        itemCount: fichajes.length,
-                        separatorBuilder: (context, __) => const SizedBox(height: 14),
-                        itemBuilder: (context, idx) {
-                          return FichajeCard(
-                            fichaje: fichajes[idx],
-                            horarioHoy: horarioHoy,
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
+                    return ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                      itemCount: fichajesHoy.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 14),
+                      itemBuilder: (_, idx) {
+                        return FichajeCard(
+                          fichaje:       fichajesHoy[idx],
+                          horarioHoy:    horarioHoy,
+                          totalTrabajado: totalHoy,
+                        );
+                      },
+                    );
+                  },
+                );
+              },
             );
           },
         ),

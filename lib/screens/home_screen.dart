@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   // esto lo utilizo para que cuando navegue a fichajes sepa que tiene que actualizar los fichajes
-  final GlobalKey<FichajesScreenState> _fichajesKey = GlobalKey();
+  final _fichajesKey = GlobalKey<FichajesScreenState>();
 
   // conjunto de pantallas para navegar. En la de fichajes le añado la key de arriba
   late final List<Widget> _screens = [

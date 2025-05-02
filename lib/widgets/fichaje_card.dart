@@ -5,27 +5,36 @@ import 'package:riber_republic_fichaje_app/model/horarioHoy.dart';
 class FichajeCard extends StatelessWidget {
   final Fichaje fichaje;
   final HorarioHoy horarioHoy;
+  final Duration totalTrabajado;  // ← nuevo parámetro
 
   const FichajeCard({
     super.key,
     required this.fichaje,
     required this.horarioHoy,
+    required this.totalTrabajado,
   });
 
   @override
   Widget build(BuildContext context) {
     // Día y fecha
     final DateTime? dia = fichaje.fechaHoraEntrada ?? fichaje.fechaHoraSalida;
-    final String nombreDia = dia != null ? _getDiaSemana(dia.weekday) : "Desconocido";
-    final String fechaStr  = dia != null ? "${dia.day}/${dia.month}/${dia.year}" : "";
+    final String nombreDia = dia != null
+        ? _getDiaSemana(dia.weekday)
+        : "Desconocido";
+    final String fechaStr = dia != null
+        ? "${dia.day}/${dia.month}/${dia.year}"
+        : "";
 
-    // Color y texto según totalTrabajado vs estimadas
-    final colorTotal = totalTrabajado < horarioHoy.horasEstimadas
-      ? Colors.red
-      : Colors.green;
-    final textoTotal = totalTrabajado == Duration.zero
-      ? "No trabajado"
-      : _formateaDuracion(totalTrabajado);
+    // Color y texto según totalTrabajado vs horas estimadas
+    final bool sinTrabajo = totalTrabajado == Duration.zero;
+    final bool porDebajo = !sinTrabajo && totalTrabajado < horarioHoy.horasEstimadas;
+
+    final Color colorTotal = sinTrabajo || porDebajo
+        ? Colors.red
+        : Colors.green;
+    final String textoTotal = sinTrabajo
+        ? "No trabajado"
+        : _formateaDuracion(totalTrabajado);
 
     return Container(
       decoration: BoxDecoration(
@@ -39,28 +48,48 @@ class FichajeCard extends StatelessWidget {
           // Día y fecha
           Row(
             children: [
-              Text(nombreDia, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(
+                nombreDia,
+                style: const TextStyle(
+                  fontSize: 20, fontWeight: FontWeight.bold
+                ),
+              ),
               const Spacer(),
-              Text(fechaStr, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+              Text(
+                fechaStr,
+                style: TextStyle(
+                  fontSize: 13, color: Colors.grey[700]
+                ),
+              ),
             ],
           ),
           const Divider(height: 20, thickness: 1),
+
           // Horas estimadas
           const Text("Horas estimadas:", style: TextStyle(fontSize: 15)),
           Text(
             _formateaDuracion(horarioHoy.horasEstimadas),
-            style: const TextStyle(color: Color(0xFFF57C00), fontWeight: FontWeight.bold, fontSize: 16),
+            style: const TextStyle(
+              color: Color(0xFFF57C00),
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
           const SizedBox(height: 3),
 
           // Horario
           Text("Horario: ${horarioHoy.horaEntrada} - ${horarioHoy.horaSalida}"),
+          const SizedBox(height: 10),
 
-          // Solo Total trabajado hoy
+          // Total horas hoy
           const Text("Total horas hoy:", style: TextStyle(fontSize: 15)),
           Text(
             textoTotal,
-            style: TextStyle(color: colorTotal, fontWeight: FontWeight.bold, fontSize: 16),
+            style: TextStyle(
+              color: colorTotal,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
         ],
       ),

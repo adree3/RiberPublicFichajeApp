@@ -30,4 +30,20 @@ class FichajeUtils {
       return sum + fin.difference(inicio);
     });
   }
+
+  static Map<DateTime, Duration> sumarHorasPorDia(List<Fichaje> fichajes) {
+    final Map<DateTime, Duration> totales = {};
+    for (final f in fichajes) {
+      if (f.fechaHoraEntrada != null && f.fechaHoraSalida != null) {
+        final entrada = f.fechaHoraEntrada!;
+        final salida  = f.fechaHoraSalida!;
+        // Normalizamos a la medianoche para agrupar por día
+        final dia = DateTime(entrada.year, entrada.month, entrada.day);
+        final dur = salida.difference(entrada);
+        totales.update(dia, (ant) => ant + dur, ifAbsent: () => dur);
+      }
+    }
+    return totales;
+  }
+
 }
