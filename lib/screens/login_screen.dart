@@ -46,15 +46,20 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacementNamed(context, '/home');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Credenciales incorrectas")),
+        SnackBar(
+          content: Text("Credenciales incorrectas"), 
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: scheme.background,
       body: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: 430),
@@ -68,10 +73,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: 120, 
                     height: 120, 
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: scheme.surface,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(Icons.image, size: 60, color: Colors.grey[700]),
+                    child: Icon(Icons.image, size: 60, color: scheme.onSurface),
                   ),
                 ),
                 
@@ -83,23 +88,25 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         TextFormField(
                           controller: _emailController,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: "Correo electrónico",
                             border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.email),
+                            prefixIcon: Icon(Icons.email, color: scheme.primary),
                           ),
+                          style: textTheme.bodyMedium,
                           validator: (value) => value!.isEmpty ? "Introduce tu email" : null,
                         ),
                         const SizedBox(height: 20),
 
                         TextFormField(
                           controller: _passController,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: "Contraseña",
                             border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.lock),
+                            prefixIcon: Icon(Icons.lock, color: scheme.primary),
                           ),
                           obscureText: true,
+                          style: textTheme.bodyMedium,
                           validator: (value) => value!.isEmpty ? "Introduce tu contraseña" : null,
                         ),
                         const SizedBox(height: 20),
@@ -111,13 +118,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               Checkbox(
                                 value: _guardarSesion,
+                                activeColor: scheme.primary,
                                 onChanged: (value) {
                                   setState(() {
                                     _guardarSesion = value ?? false;
                                   });
                                 },
                               ),
-                              const Text("Guardar sesión"),
+                              Text("Guardar sesión", style: textTheme.bodyMedium),
                             ],
                           ),
                         ),
@@ -125,33 +133,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 40),
 
                         _loading
-                            ? const CircularProgressIndicator()
-                            : ElevatedButton(
-                                onPressed: () => _login(context),
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 15),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  minimumSize: const Size(double.infinity, 50), 
-                                  backgroundColor: const Color(0xFF008080), 
-                                ),
-                                child: const Text("INICIAR SESION", style: TextStyle(color: Colors.white),),
+                        ? CircularProgressIndicator(color: scheme.primary)
+                        : SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: () => _login(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: scheme.primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                        const SizedBox(height: 20),
-                        
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (i) => OlvideContrasenaScreen()));
-                          },
-                          child: const Text(
-                            "¿Olvidaste la contraseña?",
-                            style: TextStyle(
-                              color: Color(0xFF008080), 
-                              fontWeight: FontWeight.bold,
+                            ),
+                            child: Text( "INICIAR SESIÓN",
+                              style: textTheme.labelLarge!
+                                  .copyWith(color: scheme.onPrimary),
                             ),
                           ),
-                        ),
+                        )
                       ],
                     ),
                   ),

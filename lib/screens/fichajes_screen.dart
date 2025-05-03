@@ -80,7 +80,7 @@ class FichajesScreenState extends State<FichajesScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: FutureBuilder<HorarioHoy>(
           future: _horarioFuture,

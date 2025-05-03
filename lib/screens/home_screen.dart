@@ -17,9 +17,11 @@ class HomeScreen extends StatefulWidget {
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
+  
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  
   int _currentIndex = 0;
 
   // esto lo utilizo para que cuando navegue a fichajes sepa que tiene que actualizar los fichajes
@@ -47,9 +49,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
+      iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
+
       actions: [
         IconButton(
-          icon: const Icon(Icons.person, color: Color(0xFF76BCAD)),
+          icon: const Icon(Icons.person),
           onPressed: () {
             setState(() {
               _currentIndex = 2;
@@ -62,8 +66,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.grey[200],
       // IndexStack, lo utilizo para que cuando esta pantalla este en segundo plano, siga en memoria (lo necesito para el timer)
       body: IndexedStack(
         index: _currentIndex,
@@ -71,7 +76,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       appBar: _buildAppBar(),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Color(0xFF76BCAD),
+        backgroundColor: scheme.primary,
+        selectedItemColor: scheme.onPrimary,
+        unselectedItemColor: scheme.onPrimary.withOpacity(0.7),
         currentIndex: _currentIndex,
         onTap: _onItemTapped,
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
@@ -212,6 +219,8 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     super.build(context);
     return FutureBuilder<void>(
       future: _initFuture,
@@ -237,12 +246,15 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
               children: [
                 CircleAvatar(
                   radius: 80,
-                  backgroundColor: Colors.grey[300],
-                  child: Icon(Icons.image, size: 60, color: Colors.grey[700]),
+                  backgroundColor: scheme.surface,
+                  child: Icon(Icons.image, size: 60, color: scheme.onSurface),
                 ),
                 const SizedBox(height: 10),
                 Text("¡Hola ${Provider.of<UsuarioProvider>(context, listen: false).usuario?.nombre ?? 'Usuario'}!",
-                  style: const TextStyle(fontSize: 32,fontWeight: FontWeight.bold, color: Color(0xFF008080)),
+                  style: Theme.of(context)
+                    .textTheme
+                    .headlineMedium!
+                    .copyWith(color: scheme.primary),
                 ),
                 const SizedBox(height: 40),
                 
@@ -251,23 +263,27 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
                   children: [
                     Column(
                       children: [
-                        const Text("Horas trabajadas", style: TextStyle(fontSize: 16)),
+                        Text("Horas trabajadas", style: Theme.of(context).textTheme.bodyMedium),
                         const SizedBox(height: 8),
                         Text(_formateaDuracion(total),
-                          style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFF57C00)
-                          ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall!
+                              .copyWith(color: scheme.error
+                          )
                         ),
                       ],
                     ),
                     Column(
                       children: [
-                        const Text("Horas estimadas", style: TextStyle(fontSize: 16)),
+                        Text("Horas estimadas", style: Theme.of(context).textTheme.bodyMedium),
                         const SizedBox(height: 8),
                         Text(_formateaDuracion(_horarioHoy!.horasEstimadas),
-                          style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF00796B)
-                          ),
+                           style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall!
+                              .copyWith(color: scheme.secondary
+                          )
                         ),
                       ],
                     ),
@@ -279,14 +295,14 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
                     Expanded(
                       child: Container(
                         height: 3,
-                        color: Color(0xFFF57C00), 
+                        color: scheme.error,
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Container(
                         height: 3,
-                        color: Color(0xFF00796B),
+                        color: scheme.secondary
                       ),
                     ),
                   ],
@@ -302,7 +318,7 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
                         borderRadius: BorderRadius.circular(12),
                       ),
                       textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      backgroundColor: _trabajando ? Colors.red : Colors.blue,
+                      backgroundColor: _trabajando ? scheme.error : scheme.primaryContainer
                     ),
                     child: Text(
                       _trabajando ? "FINALIZAR JORNADA" : "EMPEZAR JORNADA",

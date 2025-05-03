@@ -5,7 +5,7 @@ import 'package:riber_republic_fichaje_app/model/horarioHoy.dart';
 class FichajeCard extends StatelessWidget {
   final Fichaje fichaje;
   final HorarioHoy horarioHoy;
-  final Duration totalTrabajado;  // ← nuevo parámetro
+  final Duration totalTrabajado; 
 
   const FichajeCard({
     super.key,
@@ -16,6 +16,8 @@ class FichajeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     // Día y fecha
     final DateTime? dia = fichaje.fechaHoraEntrada ?? fichaje.fechaHoraSalida;
     final String nombreDia = dia != null
@@ -29,67 +31,67 @@ class FichajeCard extends StatelessWidget {
     final bool sinTrabajo = totalTrabajado == Duration.zero;
     final bool porDebajo = !sinTrabajo && totalTrabajado < horarioHoy.horasEstimadas;
 
-    final Color colorTotal = sinTrabajo || porDebajo
-        ? Colors.red
-        : Colors.green;
-    final String textoTotal = sinTrabajo
-        ? "No trabajado"
-        : _formateaDuracion(totalTrabajado);
+    final colorEstimadas = scheme.secondary;
+    final colorTrabajadas = sinTrabajo || porDebajo ? scheme.error : scheme.primary;
+    final textoEstimadas = _formateaDuracion(horarioHoy.horasEstimadas);
+    final textoTrabajadas = sinTrabajo ? "No trabajado" : _formateaDuracion(totalTrabajado);
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[300],
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
+         boxShadow: [
+          BoxShadow(
+            color: scheme.onSurface.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          )
+        ],
       ),
       padding: const EdgeInsets.all(14),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Día y fecha
+          Center(
+            child: Text(
+              nombreDia,
+              style: textTheme.titleMedium,
+            ),
+          ),
           Row(
             children: [
-              Text(
-                nombreDia,
-                style: const TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.bold
+              Expanded(
+                child: Text(
+                  fechaStr,
+                  style: textTheme.bodySmall,
                 ),
               ),
-              const Spacer(),
-              Text(
-                fechaStr,
-                style: TextStyle(
-                  fontSize: 13, color: Colors.grey[700]
-                ),
+              IconButton(
+                icon: const Icon(Icons.event_busy, color: Colors.redAccent),
+                tooltip: 'Justificar ausencia',
+                onPressed: () {
+
+                },
               ),
             ],
           ),
           const Divider(height: 20, thickness: 1),
 
           // Horas estimadas
-          const Text("Horas estimadas:", style: TextStyle(fontSize: 15)),
+          Text("Horas estimadas:", style: textTheme.bodySmall,),
           Text(
             _formateaDuracion(horarioHoy.horasEstimadas),
-            style: const TextStyle(
-              color: Color(0xFFF57C00),
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+            style: textTheme.bodyMedium!
+              .copyWith(color: colorEstimadas, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 3),
 
-          // Horario
-          Text("Horario: ${horarioHoy.horaEntrada} - ${horarioHoy.horaSalida}"),
-          const SizedBox(height: 10),
-
           // Total horas hoy
-          const Text("Total horas hoy:", style: TextStyle(fontSize: 15)),
+          const Text("Horas trabajadas:", style: TextStyle(fontSize: 15)),
           Text(
-            textoTotal,
-            style: TextStyle(
-              color: colorTotal,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+            textoTrabajadas,
+             style: textTheme.bodyMedium!
+              .copyWith(color: colorTrabajadas, fontWeight: FontWeight.bold),
           ),
         ],
       ),
