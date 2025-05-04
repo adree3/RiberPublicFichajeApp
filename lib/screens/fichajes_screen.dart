@@ -23,8 +23,6 @@ class FichajesScreenState extends State<FichajesScreen> {
 
   late Future<HorarioHoy> _horarioFuture;
   late Future<List<Fichaje>> _fichajesFuture;
-  late Future<TotalHorasHoy> _totalHoyFuture;
-
   int? _idUsuario;
   
   @override
@@ -35,14 +33,13 @@ class FichajesScreenState extends State<FichajesScreen> {
 
 
 
-  // metodo para coger el usuario del provider y obtener tanto el horario de hoy, los fichajes del usuario y el total trabajado hoy
+  // metodo para coger el usuario del provider y obtener tanto el horario de hoy como los fichajes del usuario.
   void __cargarUsuarioYFuturos() {
     final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
     _idUsuario = usuario?.id;
     if (_idUsuario != null) {
       _horarioFuture  = UsuarioService.getHorarioDeHoy(_idUsuario!);
       _fichajesFuture = FichajeService.getFichajesPorUsuario(_idUsuario!);
-      _totalHoyFuture = FichajeService.getTotalHorasHoy(_idUsuario!);
     }
   }
 
@@ -50,19 +47,10 @@ class FichajesScreenState extends State<FichajesScreen> {
   void recargarFichajes() {
     if (_idUsuario != null) {
       setState(() {
-        // vuelve a crear el future para forzar la llamada a la API
         _fichajesFuture = FichajeService.getFichajesPorUsuario(_idUsuario!);
-        _totalHoyFuture = FichajeService.getTotalHorasHoy(_idUsuario!);
       });
     }
   }
-  // metodo para que el formato sea (HH:mm:ss)
-  Duration _parseDuration(String hms) {
-    final parts = hms.split(':').map(int.parse).toList();
-    return Duration(hours: parts[0], minutes: parts[1], seconds: parts[2]);
-  }
-
-
  
   @override
   Widget build(BuildContext context) {
@@ -102,37 +90,30 @@ class FichajesScreenState extends State<FichajesScreen> {
                 if (fichSnap.hasError) {
                   return Center(child: Text("Error fichajes: ${fichSnap.error}"));
                 }
-                final allFichajes = fichSnap.data!;
-                final fichajesHoy = FichajeUtils.filtradosDeHoy(allFichajes);
+                final todosFichajes = fichSnap.data!;
 
-                return FutureBuilder<TotalHorasHoy>(
-                  future: _totalHoyFuture,
-                  builder: (context, totSnap) {
-                    if (totSnap.connectionState != ConnectionState.done) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (totSnap.hasError) {
-                      return Center(child: Text("Error total horas: ${totSnap.error}"));
-                    }
-                    // Parseamos "HH:mm:ss" a Duration
-                    final parts = totSnap.data!.totalHoras.split(':').map(int.parse).toList();
-                    final totalHoy = Duration(
-                      hours: parts[0],
-                      minutes: parts[1],
-                      seconds: parts[2],
-                    );
-
-                    return ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-                      itemCount: fichajesHoy.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 14),
-                      itemBuilder: (_, idx) {
-                        return FichajeCard(
-                          fichaje:       fichajesHoy[idx],
-                          horarioHoy:    horarioHoy,
-                          totalTrabajado: totalHoy,
-                        );
-                      },
+                final trabajadoTotalPorDia = FichajeUtils.sumarHorasPorDia(todosFichajes);
+                // coge el map de trabajadoTotalPorDia y lo ordena, para poner primero la reciente a la mas antigua.
+                final dias = trabajadoTotalPorDia.keys.toList()
+                  ..sort((a, b) => b.compareTo(a));
+                return ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                  itemCount: dias.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 14),
+                  itemBuilder: (_, idx) {
+                    final dia = dias[idx];
+                    final duracionTotal = trabajadoTotalPorDia[dia]!;
+                    // Obtiene el primer fichaje del dia de hoy
+                    final repFichaje = todosFichajes.firstWhere((f) {
+                      final e = f.fechaHoraEntrada!;
+                      return e.year == dia.year
+                          && e.month == dia.month
+                          && e.day == dia.day;
+                    });
+                    return FichajeCard(
+                      fichaje: repFichaje,
+                      horarioHoy: horarioHoy,
+                      totalTrabajado: duracionTotal,
                     );
                   },
                 );

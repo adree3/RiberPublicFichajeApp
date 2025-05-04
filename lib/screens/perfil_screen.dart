@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:riber_republic_fichaje_app/providers/tema_provider.dart';
 import 'package:riber_republic_fichaje_app/providers/usuario_provider.dart';
+import 'package:riber_republic_fichaje_app/screens/cambiarContrasena_screen.dart';
 
 class PerfilScreen extends StatefulWidget {
   const PerfilScreen({Key? key}) : super(key: key);
@@ -124,7 +125,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
                       title: Text('Cambiar Contraseña', style: textTheme.bodyMedium),
                       subtitle: Text('Para esta función necesitarás introducir la contraseña actual.',style: textTheme.bodySmall,),
                       onTap: () {
-                        // TODO: Navegar a cambio de contraseña
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const ChangePasswordScreen())
+                        );
                       },
                     ),
                     const Divider(height: 1),
