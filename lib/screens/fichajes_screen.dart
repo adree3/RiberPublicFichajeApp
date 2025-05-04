@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:riber_republic_fichaje_app/model/fichaje.dart';
 import 'package:riber_republic_fichaje_app/model/horarioHoy.dart';
-import 'package:riber_republic_fichaje_app/model/totalHorasHoy.dart';
 import 'package:riber_republic_fichaje_app/providers/usuario_provider.dart';
 import 'package:riber_republic_fichaje_app/screens/login_screen.dart';
 import 'package:riber_republic_fichaje_app/service/fichaje_service.dart';

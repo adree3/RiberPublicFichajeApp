@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:riber_republic_fichaje_app/providers/usuario_provider.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
 
-class ChangePasswordScreen extends StatefulWidget {
-  const ChangePasswordScreen({Key? key}) : super(key: key);
+class CambiarContrasenaScreen extends StatefulWidget {
+  const CambiarContrasenaScreen({super.key});
 
   @override
-  State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
+  State<CambiarContrasenaScreen> createState() => _CambiarContrasenaScreenState();
 }
 
-class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+class _CambiarContrasenaScreenState extends State<CambiarContrasenaScreen> {
   final _formKey = GlobalKey<FormState>();
   final _contrasenaActual = TextEditingController();
   final _nuevaContrasena = TextEditingController();
   final _confimarContrasena = TextEditingController();
   bool _loading = false;
 
+
+  /// metodo para cuando se vaya a "destruir" el widget no se quede informacion vagando.
   @override
   void dispose() {
     _contrasenaActual.dispose();
@@ -23,16 +27,19 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+  /// metodo para actualizar la contraseña en el API con   la informacion obtenida del usuario
+  Future<void> _actualizarContrasena() async {
+    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
 
-    setState(() => _loading = true);
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    setState(() {
+      _loading = true;
+    }); 
     try {
-      // Llama a tu servicio (implementa UsuarioService.changePassword)
-      await UsuarioService.changePassword(
-        _contrasenaActual.text.trim(),
-        _nuevaContrasena.text.trim(),
-      );
+      await UsuarioService.cambiarContrasena(usuario!.id, _contrasenaActual.text.trim(), _nuevaContrasena.text.trim());
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Contraseña actualizada'))
       );
@@ -42,7 +49,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         SnackBar(content: Text('Error: ${e.toString()}'))
       );
     } finally {
-      if (mounted) setState(() => _loading = false);
+      //siempre pone el loading a false para que no se quede pillado el circularProgress
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -70,10 +82,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   border: OutlineInputBorder(),
                 ),
                 obscureText: true,
-                validator: (v) =>
-                  (v == null || v.isEmpty)
-                    ? 'Introduce la contraseña actual'
-                    : null,
+                validator: (value) {
+                  if(value == null || value.isEmpty){
+                    return 'Introduce la contraseña actual';
+                  }
+                  return null;   
+                }
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -84,40 +98,48 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   border: OutlineInputBorder(),
                 ),
                 obscureText: true,
-                validator: (v) =>
-                  (v == null || v.length < 6)
-                    ? 'Mínimo 6 caracteres'
-                    : null,
+                validator: (value) {
+                  if(value == null || value.length < 6){
+                    return 'Debe contener minimo 6 caracteres';
+                  }else{
+                    return null;
+                  }
+                }
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _confimarContrasena,
                 decoration: const InputDecoration(
-                  labelText: 'Confirma nueva contraseña',
+                  labelText: 'Confirma la nueva contraseña',
                   prefixIcon: Icon(Icons.check),
                   border: OutlineInputBorder(),
                 ),
                 obscureText: true,
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Confirma la contraseña';
-                  if (v != _nuevaContrasena.text)   return 'No coincide';
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Confirma la contraseña';
+                  }
+                  if (value != _nuevaContrasena.text){
+                    return 'Debe coincidir la nueva contraseña';
+                  }
                   return null;
                 },
               ),
               const SizedBox(height: 24),
               _loading
-                ? const CircularProgressIndicator()
-                : SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: scheme.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text('Guardar cambios'),
-                    ),
+              ? const CircularProgressIndicator()
+              : SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _actualizarContrasena,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: scheme.primary,
+                    foregroundColor: scheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
+                  child: const Text('ACTUALIZAR CONTRASEÑA'),
+                ),
+              ),
             ],
           ),
         ),

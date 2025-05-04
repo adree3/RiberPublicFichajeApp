@@ -126,7 +126,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                       subtitle: Text('Para esta función necesitarás introducir la contraseña actual.',style: textTheme.bodySmall,),
                       onTap: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const ChangePasswordScreen())
+                          MaterialPageRoute(builder: (_) => const CambiarContrasenaScreen())
                         );
                       },
                     ),

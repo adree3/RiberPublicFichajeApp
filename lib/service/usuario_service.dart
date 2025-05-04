@@ -45,21 +45,19 @@ class UsuarioService {
   }
 
   /// PUT /usuarios/{idUsuario}/cambiarContrasena
-  static Future<void> cambiarContrasena(int idUsuario, String currentPassword, String newPassword) async {
+  static Future<void> cambiarContrasena(int idUsuario, String contrasenaActual, String nuevaContrasena) async {
     final response = await http.put(
       Uri.parse('$baseUrl/$idUsuario/cambiarContrasena'),
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: jsonEncode({
-      'currentPassword': currentPassword,
-      'newPassword': newPassword,
-      })
+        'contrasenaActual': contrasenaActual,
+        'nuevaContrasena' : nuevaContrasena,
+      }),
     );
     if (response.statusCode != 200) {
       throw Exception('Error al cambiar contraseña (${response.statusCode}): ${response.body}');
     }
   }
-
-  static changePassword(String trim, String trim2) {}
 }
