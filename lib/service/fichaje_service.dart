@@ -32,16 +32,20 @@ class FichajeService {
   }
 
   /// POST /fichajes/abrirFichaje/{idUsuario}
-  static Future<Fichaje> abrirFichaje(int idUsuario) async {
-    final uri = Uri.parse('$_baseUrl/abrirFichaje/$idUsuario');
-    final response = await http.post(uri, headers: {
+  static Future<Fichaje>abrirFichaje(int idUsuario, {required bool nfcUsado, required String ubicacion}) async  {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/abrirFichaje/$idUsuario'), 
+      headers: {
       'Content-Type': 'application/json',
-    });
-    if (response.statusCode == 200) {
+      },
+      body: jsonEncode({
+        'nfcUsado': nfcUsado,
+        'ubicacion': ubicacion,
+      })
+    );
+    if (response.statusCode == 201 || response.statusCode == 200) {
       return Fichaje.fromJson(jsonDecode(response.body));
-    } else if (response.statusCode == 404) {
-      throw Exception('Usuario no encontrado');
-    }
+    } 
     throw Exception('Error al abrir fichaje (${response.statusCode})');
   }
 

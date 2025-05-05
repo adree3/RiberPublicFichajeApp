@@ -5,7 +5,7 @@ import 'package:riber_republic_fichaje_app/model/usuario.dart';
 class AuthService {
   static const String baseUrl = 'http://localhost:9999'; 
 
-  Future<Usuario?> login(String email, String contrasena) async {
+  static Future<Usuario?> login(String email, String contrasena) async {
     final response = await http.post(
       Uri.parse('$baseUrl/usuarios/login'),
       headers: {'Content-Type': 'application/json'},

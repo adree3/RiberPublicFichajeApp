@@ -52,4 +52,5 @@ enum Motivo {
   vacaciones,
   enfermedad,
   falta_injustificada,
+  otro
 }

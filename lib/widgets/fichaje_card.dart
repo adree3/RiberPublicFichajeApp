@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:riber_republic_fichaje_app/model/fichaje.dart';
 import 'package:riber_republic_fichaje_app/model/horarioHoy.dart';
+import 'package:riber_republic_fichaje_app/screens/justificar_ausencia_screen.dart';
 
 class FichajeCard extends StatelessWidget {
   final Fichaje fichaje;
@@ -70,7 +71,16 @@ class FichajeCard extends StatelessWidget {
                 icon: const Icon(Icons.event_busy, color: Colors.redAccent),
                 tooltip: 'Justificar ausencia',
                 onPressed: () {
-
+                  if (dia != null) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => JustificarAusenciaScreen(
+                          usuario: fichaje.usuario,
+                          fecha: dia,
+                        ),
+                      ),
+                    );
+                  }
                 },
               ),
             ],

@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.transparent,
       elevation: 0,
       iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
-
+      automaticallyImplyLeading: false, 
       actions: [
         IconButton(
           icon: const Icon(Icons.person),
@@ -173,12 +173,17 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
     }
   }
 
-  // inicia un timer
+  // inicia el timer
   void _iniciarTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() {});
+  _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    if (!mounted) {
+      timer.cancel();
+      return;
+    }
+    setState(() {
     });
-  }
+  });
+}
 
   // cuando no se este visualizando la pantalla, para el timer
   @override
@@ -193,11 +198,11 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
 
     if (!_trabajando) {
       // Abre o reabre el fichaje de hoy
-      final fichaje = await FichajeService.abrirFichaje(usuario.id);
+      final fichaje = await FichajeService.abrirFichaje(usuario.id, nfcUsado: true, ubicacion: "Oficina Principal");
       setState(() {
         _fichajeEnCurso = fichaje;
-        _trabajando     = true;
-        _inicioActual   = fichaje.fechaHoraEntrada;
+        _trabajando = true;
+        _inicioActual = fichaje.fechaHoraEntrada;
       });
       _iniciarTimer();
     } else {

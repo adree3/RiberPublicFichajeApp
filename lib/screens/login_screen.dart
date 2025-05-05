@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:http/retry.dart';
 import 'package:provider/provider.dart';
 import 'package:riber_republic_fichaje_app/service/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,14 +24,17 @@ class _LoginScreenState extends State<LoginScreen> {
   void _login(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _loading = true);
-    final authService = AuthService();
-    final usuario = await authService.login(
+    setState(() {
+      _loading = true;
+    });
+    final usuario = await AuthService.login(
       _emailController.text,
       _passController.text,
     );
 
-    setState(() => _loading = false);
+    setState(() {
+      _loading = false;
+    });
 
     if (usuario != null) {
       final usuarioProvider = Provider.of<UsuarioProvider>(context, listen: false);
@@ -93,7 +97,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             prefixIcon: Icon(Icons.email, color: scheme.primary),
                           ),
                           style: textTheme.bodyMedium,
-                          validator: (value) => value!.isEmpty ? "Introduce tu email" : null,
+                          validator: (value) {
+                            if (value!.isEmpty){
+                              return "Introduce tu email";
+                            }else{
+                              return null;
+                            }
+                          }
                         ),
                         const SizedBox(height: 20),
 
@@ -106,7 +116,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           obscureText: true,
                           style: textTheme.bodyMedium,
-                          validator: (value) => value!.isEmpty ? "Introduce tu contraseña" : null,
+                          validator: (value){
+                            if (value!.isEmpty){
+                              return "Introduce tu contraseña";
+                            }else{
+                              return null;
+                            }
+                          } 
                         ),
                         const SizedBox(height: 20),
 

@@ -16,13 +16,21 @@ class AusenciaService {
     }
   }
 
-  Future<bool> crearAusencia(Ausencia ausencia, int idUsuario) async {
+  /// POST /ausencias/{idUsuario}
+  static Future<Ausencia> crearAusencia({required int idUsuario, required DateTime fecha, required Motivo motivo, String? detalles}) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/nuevaAusencia?idUsuario=$idUsuario'),
+      Uri.parse('$baseUrl/$idUsuario'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(ausencia.toJson()),
+      body: jsonEncode({
+        'fecha': fecha.toIso8601String(),
+        'motivo': motivo.toString().split('.').last,
+        'detalles': detalles,
+      }),
     );
 
-    return response.statusCode == 201;
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return Ausencia.fromJson(jsonDecode(response.body));
+    }
+    throw Exception('Error al justificar ausencia (${response.statusCode}): ${response.body}');
   }
 }
