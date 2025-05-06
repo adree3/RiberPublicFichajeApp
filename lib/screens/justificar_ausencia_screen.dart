@@ -1,10 +1,8 @@
-// lib/screens/justificar_ausencia_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
 import 'package:riber_republic_fichaje_app/model/ausencia.dart';
-import 'package:riber_republic_fichaje_app/service/ausencia_service.dart'; // Aquí está tu enum Motivo
-// import 'package:riber_republic_fichaje_app/service/ausencia_service.dart';
+import 'package:riber_republic_fichaje_app/service/ausencia_service.dart'; 
 
 class JustificarAusenciaScreen extends StatefulWidget {
   final Usuario usuario;
@@ -44,13 +42,14 @@ class _JustificarAusenciaScreenState extends State<JustificarAusenciaScreen> {
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ausencia justificada correctamente')),
+        const SnackBar(content: Text('Ausencia generada correctamente')),
       );
       Navigator.of(context).pop();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Error')),
       );
+      print(e);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -65,7 +64,7 @@ class _JustificarAusenciaScreenState extends State<JustificarAusenciaScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
-        title: const Text('Justificar ausencia'),
+        title: const Text('Registrar ausencia'),
         backgroundColor: scheme.primary,
       ),
       body: Padding(
@@ -125,17 +124,18 @@ class _JustificarAusenciaScreenState extends State<JustificarAusenciaScreen> {
               const SizedBox(height: 24),
 
               _loading
-              ? Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator())
               : ElevatedButton.icon(
                 onPressed: _enviarJustificante,
-                icon: const Icon(Icons.send),
-                label: const Text('Enviar justificante'),
+                icon: Icon(Icons.send,color: scheme.onPrimary), 
+                label: const Text('Generar ausencia'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: scheme.primary,
+                  foregroundColor: scheme.onPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: txt.labelLarge?.copyWith(color: scheme.onPrimary),
+                  textStyle: txt.labelLarge,
                 ),
-              ),
+              )
             ],
           ),
         ),

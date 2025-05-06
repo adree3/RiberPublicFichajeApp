@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:riber_republic_fichaje_app/model/ausencia.dart';
 import 'package:riber_republic_fichaje_app/model/fichaje.dart';
 import 'package:riber_republic_fichaje_app/model/horarioHoy.dart';
 import 'package:riber_republic_fichaje_app/providers/usuario_provider.dart';
 import 'package:riber_republic_fichaje_app/screens/login_screen.dart';
+import 'package:riber_republic_fichaje_app/service/ausencia_service.dart';
 import 'package:riber_republic_fichaje_app/service/fichaje_service.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
 import 'package:riber_republic_fichaje_app/utils/fichajeUtils.dart';
@@ -22,6 +24,7 @@ class FichajesScreenState extends State<FichajesScreen> {
 
   late Future<HorarioHoy> _horarioFuture;
   late Future<List<Fichaje>> _fichajesFuture;
+
   int? _idUsuario;
   
   @override
@@ -32,7 +35,7 @@ class FichajesScreenState extends State<FichajesScreen> {
 
 
 
-  // metodo para coger el usuario del provider y obtener tanto el horario de hoy como los fichajes del usuario.
+  // metodo para coger el usuario del provider y obtener tanto el horario de hoy, los fichajes del usuario como la ausencia de hoy.
   void __cargarUsuarioYFuturos() {
     final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
     _idUsuario = usuario?.id;
@@ -50,6 +53,9 @@ class FichajesScreenState extends State<FichajesScreen> {
       });
     }
   }
+
+  bool _mismaFecha(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
  
   @override
   Widget build(BuildContext context) {
@@ -95,24 +101,32 @@ class FichajesScreenState extends State<FichajesScreen> {
                 // coge el map de trabajadoTotalPorDia y lo ordena, para poner primero la reciente a la mas antigua.
                 final dias = trabajadoTotalPorDia.keys.toList()
                   ..sort((a, b) => b.compareTo(a));
+
                 return ListView.separated(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
                   itemCount: dias.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 14),
                   itemBuilder: (_, idx) {
                     final dia = dias[idx];
-                    final duracionTotal = trabajadoTotalPorDia[dia]!;
-                    // Obtiene el primer fichaje del dia de hoy
-                    final repFichaje = todosFichajes.firstWhere((f) {
-                      final e = f.fechaHoraEntrada!;
-                      return e.year == dia.year
-                          && e.month == dia.month
-                          && e.day == dia.day;
-                    });
-                    return FichajeCard(
-                      fichaje: repFichaje,
-                      horarioHoy: horarioHoy,
-                      totalTrabajado: duracionTotal,
+                    final durTotal = trabajadoTotalPorDia[dia]!;
+
+                    final fichaDelDia = todosFichajes.firstWhere(
+                      (f) => _mismaFecha(f.fechaHoraEntrada!, dia),
+                    );
+                    return FutureBuilder<bool>(
+                      future: AusenciaService.existeAusencia(usuario.id, dia),
+                      builder: (ctx, ausSnap) {
+                        final existe = ausSnap.data == true;
+                        // mientras carga o en error, deshabilitamos
+                        final disabled = ausSnap.connectionState != ConnectionState.done || existe;
+
+                        return FichajeCard(
+                          fichaje: fichaDelDia,
+                          horarioHoy: horarioHoy,
+                          totalTrabajado: durTotal,
+                          yaJustificado: disabled,
+                        );
+                      },
                     );
                   },
                 );

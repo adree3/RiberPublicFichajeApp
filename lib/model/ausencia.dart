@@ -4,6 +4,7 @@ class Ausencia {
   int? id;
   DateTime fecha;
   Motivo motivo;
+  EstadoAusencia estado;
   bool justificada;
   String? detalles;
   DateTime tiempoRegistrado;
@@ -13,6 +14,7 @@ class Ausencia {
     this.id,
     required this.fecha,
     this.motivo = Motivo.falta_injustificada,
+    this.estado = EstadoAusencia.vacio,
     required this.justificada,
     this.detalles,
     required this.tiempoRegistrado,
@@ -27,6 +29,10 @@ class Ausencia {
         (e) => e.toString().split('.').last == json['motivo'],
         orElse: () => Motivo.falta_injustificada,
       ),
+      estado: EstadoAusencia.values.firstWhere(
+        (e) => e.toString().split('.').last == json['estado'],
+        orElse: () => EstadoAusencia.vacio,
+      ),
       justificada: json['justificada'],
       detalles: json['detalles'],
       tiempoRegistrado: DateTime.parse(json['tiempoRegistrado']),
@@ -39,6 +45,7 @@ class Ausencia {
       'id': id,
       'fecha': fecha.toIso8601String(),
       'motivo': motivo.toString().split('.').last,
+      'estado': estado.toString().split('.').last,
       'justificada': justificada,
       'detalles': detalles,
       'tiempoRegistrado': tiempoRegistrado.toIso8601String(),
@@ -53,4 +60,10 @@ enum Motivo {
   enfermedad,
   falta_injustificada,
   otro
+}
+enum EstadoAusencia{
+  vacio,
+  pendiente,
+  aceptada,
+  rechazada
 }

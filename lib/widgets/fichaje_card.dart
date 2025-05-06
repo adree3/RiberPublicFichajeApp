@@ -7,16 +7,20 @@ class FichajeCard extends StatelessWidget {
   final Fichaje fichaje;
   final HorarioHoy horarioHoy;
   final Duration totalTrabajado; 
+  final bool yaJustificado;
+
 
   const FichajeCard({
     super.key,
     required this.fichaje,
     required this.horarioHoy,
     required this.totalTrabajado,
+    required this.yaJustificado,
   });
 
   @override
   Widget build(BuildContext context) {
+
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     // Día y fecha
@@ -67,21 +71,27 @@ class FichajeCard extends StatelessWidget {
                   style: textTheme.bodySmall,
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.event_busy, color: Colors.redAccent),
-                tooltip: 'Justificar ausencia',
-                onPressed: () {
-                  if (dia != null) {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => JustificarAusenciaScreen(
-                          usuario: fichaje.usuario,
-                          fecha: dia,
-                        ),
-                      ),
-                    );
-                  }
-                },
+              Tooltip(
+                message: yaJustificado
+                  ? 'Ausencia registrada'
+                  : 'Registrar ausencia',
+                child: IconButton(
+                  icon: const Icon(Icons.event_busy),
+                  color: yaJustificado
+                    ? scheme.secondaryContainer     
+                    : scheme.error,
+                  // Color cuando está deshabilitado
+                  disabledColor: Colors.grey.shade400,
+                  onPressed: yaJustificado
+                  ? null             
+                  : () {
+                    if (dia != null) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => JustificarAusenciaScreen(usuario: fichaje.usuario,fecha: dia),),
+                      );
+                    }
+                  },
+                ),
               ),
             ],
           ),
