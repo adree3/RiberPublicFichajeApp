@@ -3,17 +3,20 @@ import 'package:riber_republic_fichaje_app/model/fichaje.dart';
 import 'dart:convert';
 
 import 'package:riber_republic_fichaje_app/model/totalHorasHoy.dart';
+import 'package:riber_republic_fichaje_app/utils/api_config.dart';
 
 class FichajeService {
-  static const String _baseUrl = "http://localhost:9999/fichajes";
+  static String get _baseUrl => ApiConfig.baseUrl + '/fichajes';
+
 
   /// GET /fichajes/usuario/{idUsuario}
   static Future<List<Fichaje>> getFichajesPorUsuario(int idUsuario) async {
     final url = "$_baseUrl/usuario/$idUsuario";
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => Fichaje.fromJson(json)).toList();
+      final utf8Body = utf8.decode(response.bodyBytes);
+      final List<dynamic> jsonList = jsonDecode(utf8Body);
+      return jsonList.map((json) => Fichaje.fromJson(json)).toList();
     } else {
       throw Exception("Error al cargar fichajes del usuario");
     }

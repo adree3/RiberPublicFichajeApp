@@ -13,13 +13,13 @@ class Horario {
     required this.grupoId,
   });
 
-  factory Horario.fromJson(Map<String, dynamic> json) {
+  factory Horario.fromJson(Map<String, dynamic> json, int grupoId) {
     return Horario(
-      id: json['id'],
+      id: json['id'] as int,
       dia: Dia.values.firstWhere((e) => e.name == json['dia']),
-      horaEntrada: json['horaEntrada'],
-      horaSalida: json['horaSalida'],
-      grupoId: json['grupo']['id'], // Asumiendo que grupo viene como objeto
+      horaEntrada: json['horaEntrada'] as String,
+      horaSalida: json['horaSalida'] as String,
+      grupoId: grupoId,
     );
   }
 

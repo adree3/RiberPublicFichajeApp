@@ -17,16 +17,15 @@ class Grupo {
   });
 
   factory Grupo.fromJson(Map<String, dynamic> json) {
+    final int gid = json['id'] as int;
     return Grupo(
-      id: json['id'],
-      nombre: json['nombre'],
-      faltasTotales: json['faltasTotales'],
-      usuarios: (json['usuarios'] as List<dynamic>)
-          .map((e) => Usuario.fromJson(e))
-          .toList(),
-      horarios: (json['horarios'] as List<dynamic>)
-          .map((e) => Horario.fromJson(e))
-          .toList(),
+      id: gid,
+      nombre: json['nombre'] as String,
+      faltasTotales: json['faltasTotales'] as int,
+      usuarios: (json['usuarios'] as List).map((u) => Usuario.fromJson(u as Map<String, dynamic>))
+                  .toList(),
+      horarios: (json['horarios'] as List<dynamic>).map((h) => Horario.fromJson(h as Map<String,dynamic>, gid))
+                  .toList(),
     );
   }
 

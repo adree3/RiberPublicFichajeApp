@@ -37,7 +37,6 @@ class FichajeUtils {
       if (f.fechaHoraEntrada != null && f.fechaHoraSalida != null) {
         final entrada = f.fechaHoraEntrada!;
         final salida  = f.fechaHoraSalida!;
-        // Normalizamos a la medianoche para agrupar por día
         final dia = DateTime(entrada.year, entrada.month, entrada.day);
         final dur = salida.difference(entrada);
         totales.update(dia, (ant) => ant + dur, ifAbsent: () => dur);

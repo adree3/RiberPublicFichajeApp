@@ -9,10 +9,10 @@ class JustificarAusenciaScreen extends StatefulWidget {
   final DateTime fecha;
 
   const JustificarAusenciaScreen({
-    Key? key,
+    super.key,
     required this.usuario,
     required this.fecha,
-  }) : super(key: key);
+  });
 
   @override
   State<JustificarAusenciaScreen> createState() => _JustificarAusenciaScreenState();
@@ -49,16 +49,19 @@ class _JustificarAusenciaScreenState extends State<JustificarAusenciaScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error')),
       );
-      print(e);
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted){
+        setState(() {
+          _loading = false;
+        });
+      };
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final txt = Theme.of(context).textTheme;
+    final txtScheme = Theme.of(context).textTheme;
     final fechaStr = '${widget.fecha.day}/${widget.fecha.month}/${widget.fecha.year}';
 
     return Scaffold(
@@ -75,12 +78,11 @@ class _JustificarAusenciaScreenState extends State<JustificarAusenciaScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text('Usuario: ${widget.usuario.nombre} ${widget.usuario.apellido1}',
-                  style: txt.bodyLarge),
+                  style: txtScheme.bodyLarge),
               const SizedBox(height: 8),
-              Text('Fecha: $fechaStr', style: txt.bodyLarge),
+              Text('Fecha: $fechaStr', style: txtScheme.bodyLarge),
               const SizedBox(height: 24),
 
-              // Selector de motivo
               DropdownButtonFormField<Motivo>(
                 value: _selectedMotivo,
                 decoration: const InputDecoration(
@@ -99,13 +101,16 @@ class _JustificarAusenciaScreenState extends State<JustificarAusenciaScreen> {
                   }
                   return DropdownMenuItem(value: m, child: Text(motivo));
                 }).toList(),
-                onChanged: (v) {
-                  if (v != null) setState(() => _selectedMotivo = v);
+                onChanged: (value) {
+                  if (value != null){
+                    setState(() {
+                      _selectedMotivo = value;
+                    });
+                  };
                 },
               ),
               const SizedBox(height: 16),
 
-              // Detalles / descripción
               TextFormField(
                 controller: _detallesCtrl,
                 decoration: const InputDecoration(
@@ -113,9 +118,8 @@ class _JustificarAusenciaScreenState extends State<JustificarAusenciaScreen> {
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 3,
-                validator: (v) {
-                  // Si el motivo es "otro", obligamos un detalle
-                  if (_selectedMotivo == Motivo.otro && (v == null || v.isEmpty)) {
+                validator: (value) {
+                  if (_selectedMotivo == Motivo.otro && (value == null || value.isEmpty)) {
                     return 'Describe la ausencia';
                   }
                   return null;
@@ -133,7 +137,7 @@ class _JustificarAusenciaScreenState extends State<JustificarAusenciaScreen> {
                   backgroundColor: scheme.primary,
                   foregroundColor: scheme.onPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: txt.labelLarge,
+                  textStyle: txtScheme.labelLarge,
                 ),
               )
             ],

@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
+import 'package:riber_republic_fichaje_app/utils/api_config.dart';
 
 class AuthService {
-  static const String baseUrl = 'http://localhost:9999'; 
+  static String get baseUrl => ApiConfig.baseUrl;
 
   static Future<Usuario?> login(String email, String contrasena) async {
     final response = await http.post(

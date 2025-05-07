@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:riber_republic_fichaje_app/providers/tema_provider.dart';
 import 'package:riber_republic_fichaje_app/providers/usuario_provider.dart';
-import 'package:riber_republic_fichaje_app/screens/cambiar_contrasena_screen.dart';
+import 'package:riber_republic_fichaje_app/screens/user/cambiar_contrasena_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PerfilScreen extends StatefulWidget {
@@ -13,7 +13,7 @@ class PerfilScreen extends StatefulWidget {
 }
 
 class _PerfilScreenState extends State<PerfilScreen> {
-  String _selectedLang = 'es'; // 'es' or 'en'
+  //String _selectedLang = 'es'; // 'es' or 'en'
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                         backgroundColor: scheme.secondaryContainer,
                         child: Icon(Icons.person, size: 80, color: scheme.onSurface),
                       ),
-                      Positioned(
+                      /*Positioned(
                         bottom: 0,
                         right: 4,
                         child: GestureDetector(
@@ -65,7 +65,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                             ),
                           ),
                         ),
-                      ),
+                      ),*/
                     ],
                     
                   ),
@@ -85,7 +85,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 color: scheme.surface,
                 child: Column(
                   children: [
-                    // Tema oscuro
                     SwitchListTile(
                       title: const Text('Tema Oscuro'),
                       subtitle: Text('Elige entre tema claro u oscuro.', style: textTheme.bodySmall),
@@ -95,8 +94,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     ),
                     const Divider(height: 1),
 
-                    // Idioma
-                    ListTile(
+                    /*ListTile(
                       leading: const Icon(Icons.language),
                       title: const Text('Idioma'),
                       subtitle: Text('Cambia el idioma de la aplicación.', style: textTheme.bodySmall),
@@ -119,8 +117,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                       ),
                     ),
                     const Divider(height: 1),
-
-                    // Cambiar contraseña
+*/
                     ListTile(
                       leading: Icon(Icons.lock, color: scheme.primary),
                       title: Text('Cambiar Contraseña', style: textTheme.bodyMedium),
@@ -133,7 +130,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     ),
                     const Divider(height: 1),
 
-                    // Cerrar sesión
                     ListTile(
                       leading: Icon(Icons.exit_to_app, color: scheme.error),
                       title: Text(
@@ -148,7 +144,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
                         final confirmar = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            // Título centrado con icono y texto en negrita
                             title: Center(
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,

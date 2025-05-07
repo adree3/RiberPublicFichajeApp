@@ -6,8 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:riber_republic_fichaje_app/model/fichaje.dart';
 import 'package:riber_republic_fichaje_app/model/horarioHoy.dart';
 import 'package:riber_republic_fichaje_app/providers/usuario_provider.dart';
-import 'package:riber_republic_fichaje_app/screens/perfil_screen.dart';
-import 'package:riber_republic_fichaje_app/screens/fichajes_screen.dart';
+import 'package:riber_republic_fichaje_app/screens/user/perfil_screen.dart';
+import 'package:riber_republic_fichaje_app/screens/user/fichajes_screen.dart';
 import 'package:riber_republic_fichaje_app/service/fichaje_service.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
 import 'package:riber_republic_fichaje_app/utils/fichajeUtils.dart';
@@ -21,7 +21,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  
   int _currentIndex = 0;
 
   // esto lo utilizo para que cuando navegue a fichajes sepa que tiene que actualizar los fichajes
@@ -43,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _fichajesKey.currentState?.recargarFichajes();
     }
   }
-
+  /// appbar para las pantallas, si es la 2 va sin icono
   PreferredSizeWidget? _buildAppBar() {
     if (_currentIndex == 2) return null;
     return AppBar(
@@ -116,20 +115,12 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
   // sirve para ejecutar solo una vez el cargaInicial.
   late Future<void> _initFuture;
 
-  // inicializo trabjando a false
   bool _trabajando = false;
-  // sirve para guardar la sesion que recibo del back
   Fichaje? _fichajeEnCurso;
-  // sirve para saber cuando empece el fichaje, para calcular el tiempo real 
   DateTime? _inicioActual;
-  // es el timer 
   Timer? _timer;
-
-  // lista de fichajes de hoy para calcular el tiempo trabajado
   List<Fichaje> _fichajesDeHoy = [];
-  // sirve para guardar el horario de hoy recibido del back
   HorarioHoy? _horarioHoy;
-  // guarda la suma del tiempo de todos los fichajes de hoy que esten cerrados
   Duration _acumulado = Duration.zero;
 
   @override
@@ -149,7 +140,6 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
     // filtra los fichajes para quedarme con los fichajes de hoy
     _fichajesDeHoy = FichajeUtils.filtradosDeHoy(fichajes);
 
-
     // obtengo el primer fichaje de hoy que no tenga hora de salida
     _fichajeEnCurso = _fichajesDeHoy.firstWhereOrNull((f) => f.fechaHoraSalida == null);
     // si hay un fichaje en curso sera true (para el boton rojo o azul)
@@ -159,13 +149,7 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
 
     // calcula el tiempo trabajado contando solo los fichajes con hora de salida
     _acumulado = FichajeUtils.calcularFichajesHoy(_fichajesDeHoy);
-    /*_acumulado = _fichajesDeHoy.fold(Duration.zero, (sum, f) {
-      if (f.fechaHoraSalida != null) {
-        return sum + f.fechaHoraSalida!.difference(f.fechaHoraEntrada!);
-      }
-      return sum;
-    });*/
-
+  
     // si ya había una sesión abierta, inicia el timer
     if (_trabajando) {
       _inicioActual = _fichajeEnCurso!.fechaHoraEntrada;
@@ -197,7 +181,7 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
     final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario!;
 
     if (!_trabajando) {
-      // Abre o reabre el fichaje de hoy
+      // Abre el fichaje de hoy
       final fichaje = await FichajeService.abrirFichaje(usuario.id, nfcUsado: true, ubicacion: "Oficina Principal");
       setState(() {
         _fichajeEnCurso = fichaje;

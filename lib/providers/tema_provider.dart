@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Provider utilizado para el tema oscuro o claro
 class ThemeProvider extends ChangeNotifier {
   ThemeMode _mode = ThemeMode.light;
   ThemeProvider() {

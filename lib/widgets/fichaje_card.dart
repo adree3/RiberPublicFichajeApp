@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:riber_republic_fichaje_app/model/fichaje.dart';
 import 'package:riber_republic_fichaje_app/model/horarioHoy.dart';
-import 'package:riber_republic_fichaje_app/screens/justificar_ausencia_screen.dart';
+import 'package:riber_republic_fichaje_app/screens/user/justificar_ausencia_screen.dart';
 
 class FichajeCard extends StatelessWidget {
   final Fichaje fichaje;
@@ -38,7 +38,6 @@ class FichajeCard extends StatelessWidget {
 
     final colorEstimadas = scheme.secondary;
     final colorTrabajadas = sinTrabajo || porDebajo ? scheme.error : scheme.primary;
-    final textoEstimadas = _formateaDuracion(horarioHoy.horasEstimadas);
     final textoTrabajadas = sinTrabajo ? "No trabajado" : _formateaDuracion(totalTrabajado);
 
     return Container(

@@ -18,7 +18,7 @@ class _CambiarContrasenaScreenState extends State<CambiarContrasenaScreen> {
   bool _loading = false;
 
 
-  /// metodo para cuando se vaya a "destruir" el widget no se quede informacion vagando.
+  /// metodo para cuando se vaya a "destruir" el widget no se quede informacion flotando en la nada.
   @override
   void dispose() {
     _contrasenaActual.dispose();
@@ -27,7 +27,7 @@ class _CambiarContrasenaScreenState extends State<CambiarContrasenaScreen> {
     super.dispose();
   }
 
-  /// metodo para actualizar la contraseña en el API con   la informacion obtenida del usuario
+  /// metodo para actualizar la contraseña en el API con la informacion obtenida del usuario
   Future<void> _actualizarContrasena() async {
     final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
 
@@ -61,8 +61,7 @@ class _CambiarContrasenaScreenState extends State<CambiarContrasenaScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final textTh = Theme.of(context).textTheme;
-
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cambiar contraseña'),

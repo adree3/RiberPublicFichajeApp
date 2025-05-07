@@ -1,17 +1,19 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:riber_republic_fichaje_app/model/ausencia.dart';
+import 'package:riber_republic_fichaje_app/utils/api_config.dart';
 
 class AusenciaService {
-  static const String baseUrl = 'http://localhost:9999/ausencias';
+  static String get baseUrl => ApiConfig.baseUrl + '/ausencias';
 
   /// GET /ausencias/
   Future<List<Ausencia>> getAusencias() async {
     final response = await http.get(Uri.parse('$baseUrl/'));
 
     if (response.statusCode == 200) {
-      final List<dynamic> decoded = jsonDecode(response.body);
-      return decoded.map((e) => Ausencia.fromJson(e)).toList();
+      final utf8Body = utf8.decode(response.bodyBytes);
+      final List<dynamic> jsonList = jsonDecode(utf8Body);
+      return jsonList.map((e) => Ausencia.fromJson(e)).toList();
     } else {
       throw Exception('Error al obtener las ausencias');
     }

@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/retry.dart';
 import 'package:provider/provider.dart';
+import 'package:riber_republic_fichaje_app/model/usuario.dart';
 import 'package:riber_republic_fichaje_app/service/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/usuario_provider.dart';
@@ -27,10 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _loading = true;
     });
-    final usuario = await AuthService.login(
-      _emailController.text,
-      _passController.text,
-    );
+    final usuario = await AuthService.login(_emailController.text,_passController.text);
 
     setState(() {
       _loading = false;
@@ -45,8 +44,18 @@ class _LoginScreenState extends State<LoginScreen> {
         final usuarioJson = jsonEncode(usuario.toJson());
         await prefs.setString('usuario', usuarioJson);
       }
+      final esAdmin   = usuario.rol == Rol.jefe;
+      final esEscritorio = kIsWeb 
+        || Platform.isWindows 
+        || Platform.isLinux 
+        || Platform.isMacOS;
 
-      Navigator.pushReplacementNamed(context, '/home');
+      final ruta =
+          (esAdmin && esEscritorio)
+            ? '/admin_home'
+            : '/home';
+
+      Navigator.pushReplacementNamed(context, ruta);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

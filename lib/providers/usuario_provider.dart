@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
 
+/// Provider utilizado para guardar el usuario loggeado
 class UsuarioProvider with ChangeNotifier {
   Usuario? _usuario;
 

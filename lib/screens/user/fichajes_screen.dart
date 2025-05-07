@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:riber_republic_fichaje_app/model/ausencia.dart';
 import 'package:riber_republic_fichaje_app/model/fichaje.dart';
 import 'package:riber_republic_fichaje_app/model/horarioHoy.dart';
 import 'package:riber_republic_fichaje_app/providers/usuario_provider.dart';
@@ -33,9 +32,7 @@ class FichajesScreenState extends State<FichajesScreen> {
     __cargarUsuarioYFuturos();
   }
 
-
-
-  // metodo para coger el usuario del provider y obtener tanto el horario de hoy, los fichajes del usuario como la ausencia de hoy.
+  /// metodo para coger el usuario del provider y obtener tanto el horario de hoy, los fichajes del usuario como la ausencia de hoy.
   void __cargarUsuarioYFuturos() {
     final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
     _idUsuario = usuario?.id;
@@ -45,7 +42,7 @@ class FichajesScreenState extends State<FichajesScreen> {
     }
   }
 
-  // este metodo se utiliza desde home para recargar los fichajes
+  /// metodo utilizado desde home para recargar los fichajes cuando se navegue a esta pantalla
   void recargarFichajes() {
     if (_idUsuario != null) {
       setState(() {
@@ -96,7 +93,7 @@ class FichajesScreenState extends State<FichajesScreen> {
                   return Center(child: Text("Error fichajes: ${fichSnap.error}"));
                 }
                 final todosFichajes = fichSnap.data!;
-
+                // con la lista de fichajes, suma todas las horas trabajadas
                 final trabajadoTotalPorDia = FichajeUtils.sumarHorasPorDia(todosFichajes);
                 // coge el map de trabajadoTotalPorDia y lo ordena, para poner primero la reciente a la mas antigua.
                 final dias = trabajadoTotalPorDia.keys.toList()
@@ -109,8 +106,8 @@ class FichajesScreenState extends State<FichajesScreen> {
                   itemBuilder: (_, idx) {
                     final dia = dias[idx];
                     final durTotal = trabajadoTotalPorDia[dia]!;
-
-                    final fichaDelDia = todosFichajes.firstWhere(
+                    // obtiene el primer fichaje
+                    final fichajeDelDia = todosFichajes.firstWhere(
                       (f) => _mismaFecha(f.fechaHoraEntrada!, dia),
                     );
                     return FutureBuilder<bool>(
@@ -121,7 +118,7 @@ class FichajesScreenState extends State<FichajesScreen> {
                         final disabled = ausSnap.connectionState != ConnectionState.done || existe;
 
                         return FichajeCard(
-                          fichaje: fichaDelDia,
+                          fichaje: fichajeDelDia,
                           horarioHoy: horarioHoy,
                           totalTrabajado: durTotal,
                           yaJustificado: disabled,

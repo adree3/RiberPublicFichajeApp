@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import 'package:riber_republic_fichaje_app/model/horarioHoy.dart';
 
 class FichajeDiaCard extends StatelessWidget {
@@ -74,3 +74,4 @@ class FichajeDiaCard extends StatelessWidget {
     return nombres[w];
   }
 }
+*/
