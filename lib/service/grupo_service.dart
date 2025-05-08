@@ -11,7 +11,8 @@ class GrupoService {
     final response = await http.get(Uri.parse('$baseUrl/'));
 
     if (response.statusCode == 200) {
-      final List<dynamic> lista = jsonDecode(response.body);
+      final utf8Body = utf8.decode(response.bodyBytes);
+      final List<dynamic> lista = jsonDecode(utf8Body);
       return lista.map((e) => Grupo.fromJson(e)).toList();
     } else {
       throw Exception('Error al obtener los grupos');

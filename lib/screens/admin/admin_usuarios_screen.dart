@@ -2,8 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
-import 'package:riber_republic_fichaje_app/screens/admin/admin_crear_usuario_screen.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
+import 'package:riber_republic_fichaje_app/utils/tamanos.dart';
+import 'package:riber_republic_fichaje_app/widgets/admin/admin_crear_usuario_dialog.dart';
 
 class AdminUsuariosScreen extends StatefulWidget {
   const AdminUsuariosScreen({super.key});
@@ -31,12 +32,36 @@ class _AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
     setState(() {});
   }
 
-  void _onCreate() async {
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(builder: (_) => const AdminUsuarioCrearScreen()),
-    );
-    if (result == true) _refresh();
+  void _onCreate() {
+    showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Center(
+            child: Text(
+              'Crear Usuario',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+          contentPadding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+          content: SizedBox(
+            width: 360,
+            child: AdminUsuarioDialog(
+              onCreated: () => Navigator.of(context).pop(true),
+            ),
+          ),
+        );
+      },
+    ).then((created) {
+      if (created == true) {
+        _refresh();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Usuario creado correctamente')),
+        );
+      }
+    });
   }
 
   void _onEdit(Usuario user) async {
@@ -62,111 +87,103 @@ class _AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
     }
   }
 
+  Color _avatarColor(int id) {
+    // Lista de colores base
+    final colors = Colors.primaries;
+    return colors[id % colors.length];
+  }
+
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Usuarios'),
-        centerTitle: true,
-      ),
-      body: FutureBuilder<List<Usuario>>(
-        future: _futureUsers,
-        builder: (context, snap) {
-          if (snap.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snap.hasError) {
-            return Center(child: Text('Error: ${snap.error}'));
-          }
-          final listaUsuarios = snap.data!;
-          if (listaUsuarios.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.person_off, size: 64, color: scheme.secondaryContainer),
-                  SizedBox(height: 16),
-                  Text('No hay usuarios registrados.',
-                      style: TextStyle(fontSize: 18, color: scheme.secondaryContainer)),
-                ],
+    return LayoutBuilder(builder: (ctx, constraints) {
+      final esMovil = constraints.maxWidth < Tamanos.movilMaxAnchura;
+
+      return Scaffold(
+        appBar: esMovil
+            ? null
+            : AppBar(
+                title: const Text('Usuarios'),
+                centerTitle: true,
               ),
-            );
-          }
-          return RefreshIndicator(
-            onRefresh: _refresh,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              itemCount: listaUsuarios.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, i) {
-                final usuario = listaUsuarios[i];
-                final iniciales = (usuario.nombre.isNotEmpty ? usuario.nombre[0] : '') +
-                    (usuario.apellido1.isNotEmpty ? usuario.apellido1[0] : '');
-                return Dismissible(
-                  key: ValueKey(usuario.id),
-                  direction: DismissDirection.endToStart,
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    color: Theme.of(context).colorScheme.error,
-                    padding: const EdgeInsets.only(right: 20),
-                    child: const Icon(Icons.delete, color: Colors.white),
-                  ),
-                  confirmDismiss: (_) async {
-                    return await showDialog<bool>(
+        body: FutureBuilder<List<Usuario>>(
+          future: _futureUsers,
+          builder: (context, snap) {
+            if (snap.connectionState != ConnectionState.done) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snap.hasError) {
+              return Center(child: Text('Error: ${snap.error}'));
+            }
+            final lista = snap.data!;
+            if (lista.isEmpty) {
+              return const Center(child: Text('No hay usuarios registrados.'));
+            }
+            return RefreshIndicator(
+              onRefresh: _refresh,
+              child: ListView.separated(
+                // Añado padding bottom para que el FAB no cubra el último Card
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                itemCount: lista.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (_, i) {
+                  final u = lista[i];
+                  final initials = '${u.nombre[0]}${u.apellido1[0]}';
+                  final bgColor = _avatarColor(u.id);
+                  return Dismissible(
+                    key: ValueKey(u.id),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      color: Theme.of(context).colorScheme.error,
+                      padding: const EdgeInsets.only(right: 20),
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    confirmDismiss: (_) async => await showDialog<bool>(
                       context: context,
-                      builder: (ctx) => AlertDialog(
+                      builder: (dctx) => AlertDialog(
                         title: const Text('Eliminar usuario'),
-                        content: Text(
-                            '¿Seguro que deseas eliminar a ${usuario.nombre} ${usuario.apellido1}?'),
+                        content: Text('¿Eliminar a ${u.nombre} ${u.apellido1}?'),
                         actions: [
                           TextButton(
-                              onPressed: () => Navigator.pop(ctx, false),
+                              onPressed: () => Navigator.pop(dctx, false),
                               child: const Text('Cancelar')),
                           TextButton(
-                              onPressed: () => Navigator.pop(ctx, true),
+                              onPressed: () => Navigator.pop(dctx, true),
                               child: const Text('Eliminar')),
                         ],
                       ),
-                    );
-                  },
-                  onDismissed: (_) => _onDeleteConfirmed(usuario),
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    elevation: 2,
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor:
-                            scheme.primaryContainer,
-                        foregroundColor:
-                            scheme.onPrimaryContainer,
-                        child: Text(iniciales),
-                      ),
-                      title: Text('${usuario.nombre} ${usuario.apellido1}'),
-                      subtitle: Text(usuario.email),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _onEdit(usuario),
-                          ),
-                        ],
+                    ),
+                    onDismissed: (_) => _onDeleteConfirmed(u),
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      elevation: 2,
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: bgColor,
+                          foregroundColor: Colors.white,
+                          child: Text(initials),
+                        ),
+                        title: Text('${u.nombre} ${u.apellido1}'),
+                        subtitle: Text(u.email),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => _onEdit(u),
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _onCreate,
-        icon: const Icon(Icons.add),
-        label: const Text('Nuevo'),
-      ),
-    );
+                  );
+                },
+              ),
+            );
+          },
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          icon: const Icon(Icons.add),
+          label: const Text('Nuevo'),
+          onPressed: _onCreate,
+        ),
+      );
+    });
   }
 }

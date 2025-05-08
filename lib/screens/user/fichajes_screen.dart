@@ -10,7 +10,7 @@ import 'package:riber_republic_fichaje_app/service/ausencia_service.dart';
 import 'package:riber_republic_fichaje_app/service/fichaje_service.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
 import 'package:riber_republic_fichaje_app/utils/fichajeUtils.dart';
-import 'package:riber_republic_fichaje_app/widgets/fichaje_card.dart';
+import 'package:riber_republic_fichaje_app/widgets/user/fichaje_card.dart';
 
 class FichajesScreen extends StatefulWidget {
   const FichajesScreen({super.key});

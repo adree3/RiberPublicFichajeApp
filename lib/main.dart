@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
           secondary: Color(0xFFF57C00),
           primaryContainer: Color(0xFF1565C0),
           secondaryContainer: Colors.grey, 
-          tertiary: Color(0xFF384f49)
+          tertiary: Color(0xFFe4d9ce)
 
         ),
         appBarTheme: const AppBarTheme(

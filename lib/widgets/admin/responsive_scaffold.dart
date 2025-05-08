@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:riber_republic_fichaje_app/providers/usuario_provider.dart';
 import 'package:riber_republic_fichaje_app/utils/tamanos.dart';
-import 'package:riber_republic_fichaje_app/widgets/admin_drawer.dart';
+import 'package:riber_republic_fichaje_app/widgets/admin/admin_drawer.dart';
 
 class ResponsiveScaffold extends StatelessWidget {
   final Widget body;
@@ -25,7 +25,7 @@ class ResponsiveScaffold extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
     final title = destinations[selectedIndex].label;
-    final isMobile = MediaQuery.of(context).size.width < Tamanos.tabletMaxAnchura;
+    final isMobile = MediaQuery.of(context).size.width < Tamanos.movilMaxAnchura;
 
 
     if (isMobile) {
@@ -37,7 +37,7 @@ class ResponsiveScaffold extends StatelessWidget {
         drawer: AdminDrawer(
           selectedIndex: selectedIndex,
           onIndexSelected: onIndexSelected,
-          destinations: destinations,
+          pantallas: destinations,
         ),
         body: body,
       );
@@ -50,7 +50,7 @@ class ResponsiveScaffold extends StatelessWidget {
           AdminDrawer(
             selectedIndex: selectedIndex,
             onIndexSelected: onIndexSelected,
-            destinations: destinations,
+            pantallas: destinations,
           ),
           const VerticalDivider(width: 1),
           Expanded(child: body),

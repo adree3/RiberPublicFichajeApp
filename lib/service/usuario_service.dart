@@ -6,7 +6,7 @@ import 'package:riber_republic_fichaje_app/utils/api_config.dart';
 
 class UsuarioService {
   static String get baseUrl => ApiConfig.baseUrl + '/usuarios';
-
+  /// Obtiene todos los usuarios
   /// GET /usuarios/
   Future<List<Usuario>> getUsuarios() async {
     final response = await http.get(Uri.parse('$baseUrl/'));
@@ -20,7 +20,7 @@ class UsuarioService {
       throw Exception('Error al obtener usuarios');
     }
   }
-    
+  /// Obtiene los horarios de hoy de un usuario
   /// GET /usuarios/{idUsuario}/horarioHoy
   static Future<HorarioHoy> getHorarioDeHoy(int idUsuario) async {
     final uri = Uri.parse('$baseUrl/$idUsuario/horarioHoy');
@@ -34,6 +34,18 @@ class UsuarioService {
     }
   }
 
+  /// Comprueba si un email ya está registrado
+  /// GET /usuarios/existe
+  Future<bool> emailEnUso(String email) async {
+    final response = await http.get(Uri.parse('$baseUrl/existe?email=$email'));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as bool;
+    } else {
+      throw Exception('Error comprobando email (${response.statusCode})');
+    }
+  }
+
+  /// Crea un usuario 
   /// POST /usuarios/nuevoUsuario/{idGrupo}
   Future<void> crearUsuario(Usuario usuario, int idGrupo) async {
     final response = await http.post(
@@ -47,6 +59,7 @@ class UsuarioService {
     }
   }
 
+  /// Edita la contraseña a un usuario
   /// PUT /usuarios/{idUsuario}/cambiarContrasena
   static Future<void> cambiarContrasena(int idUsuario, String contrasenaActual, String nuevaContrasena) async {
     final response = await http.put(
@@ -64,6 +77,7 @@ class UsuarioService {
     }
   }
 
+  /// Edita un usuario
   /// PUT /usuarios/editarUsuario/{id}/update?idGrupo={idGrupo}
   static Future<Usuario> actualizarUsuario(int idUsuario,Usuario usuario,int idGrupo,) async {
     final response = await http.put(
@@ -80,10 +94,11 @@ class UsuarioService {
     }
   }
 
-  /// DELETE /usuarios/{id}
+  /// Elimina un usuario
+  /// DELETE /usuarios/eliminarUsuario/{id}
   Future<void> eliminarUsuario(int idUsuario) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/$idUsuario'),
+      Uri.parse('$baseUrl/eliminarUsuario/$idUsuario'),
       headers: {
       'Content-Type': 'application/json',
     });

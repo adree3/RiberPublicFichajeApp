@@ -5,7 +5,7 @@ import 'package:riber_republic_fichaje_app/model/grupo.dart';
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
 import 'package:riber_republic_fichaje_app/service/grupo_service.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
-import 'package:riber_republic_fichaje_app/widgets/responsive_container.dart';
+import 'package:riber_republic_fichaje_app/widgets/admin/responsive_container.dart';
 
 class AdminUsuarioCrearScreen extends StatefulWidget {
   final Usuario? usuario;
