@@ -6,15 +6,15 @@ import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
 
 typedef OnUsuarioCreated = void Function();
 
-class AdminUsuarioDialog extends StatefulWidget {
+class AdminUsuarioCrearDialogo extends StatefulWidget {
   final OnUsuarioCreated onCreated;
-  const AdminUsuarioDialog({super.key, required this.onCreated});
+  const AdminUsuarioCrearDialogo({super.key, required this.onCreated});
 
   @override
-  _AdminUsuarioDialogState createState() => _AdminUsuarioDialogState();
+  _AdminUsuarioCrearDialogoState createState() => _AdminUsuarioCrearDialogoState();
 }
 
-class _AdminUsuarioDialogState extends State<AdminUsuarioDialog> {
+class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
   // controladores para los textFormFields
   final _formKey = GlobalKey<FormState>();
   final _nombreCtrl = TextEditingController();
@@ -25,16 +25,19 @@ class _AdminUsuarioDialogState extends State<AdminUsuarioDialog> {
 
   Rol? _rolSeleccionado;
   Grupo? _grupoSeleccionado;
-  late Future<List<Grupo>> _futureGrupos;
+  late Future<List<dynamic>> _futureData;
   bool _loading = false;
-  bool _checkingEmail = false;
+  bool _comprobandoCorreo = false;
   String? _emailError;
 
-  /// Al iniciar obtiene los grupos
+  /// Al iniciar obtiene los grupos y usuarios
   @override
   void initState() {
     super.initState();
-    _futureGrupos = GrupoService().getGrupos();
+    _futureData = Future.wait([
+      GrupoService().getGrupos(),
+      UsuarioService().getUsuarios()
+    ]);
   }
 
   /// Cuando la aplicacion se va a "destruir", elimina la informacion de los atributos
@@ -60,23 +63,16 @@ class _AdminUsuarioDialogState extends State<AdminUsuarioDialog> {
   }
 
   /// Llama al servicio para comprobar si el email existe
-  Future<void> _comprobarMail(String email) async {
+   Future<void> _comprobarCorreo(String email, List<Usuario> usuarios) async {
     setState(() {
-      _checkingEmail = true;
+      _comprobandoCorreo = true;
     });
-    try {
-      final enUso = await UsuarioService().emailEnUso(email);
-      setState(() {
-        _emailError = enUso ? 'Este correo ya está registrado' : null;
-      });
-    } catch (_) {
-      // opcional: manejar error de red…
-    } finally {
-      setState(() {
-        _checkingEmail = false;
-      });
-      _formKey.currentState?.validate();
-    }
+    final enUso = usuarios.any((usuario) => usuario.email.toLowerCase() == email.toLowerCase());
+    setState(() {
+      _emailError = enUso ? 'Este correo ya está registrado' : null;
+      _comprobandoCorreo = false;
+    });
+    _formKey.currentState?.validate();
   }
 
   /// Valida el usuario y llama al servicio para crearlo
@@ -119,7 +115,7 @@ class _AdminUsuarioDialogState extends State<AdminUsuarioDialog> {
         setState(() {
            _loading = false;
         });
-      };
+      }
     }
   }
 
@@ -128,8 +124,8 @@ class _AdminUsuarioDialogState extends State<AdminUsuarioDialog> {
     // obtener los colores
     final scheme = Theme.of(context).colorScheme;
 
-    return FutureBuilder<List<Grupo>>(
-      future: _futureGrupos,
+    return FutureBuilder<List<dynamic>>(
+      future: _futureData,
       builder: (ctx, snap) {
         if (snap.connectionState != ConnectionState.done) {
           return const SizedBox(
@@ -140,14 +136,14 @@ class _AdminUsuarioDialogState extends State<AdminUsuarioDialog> {
         if (snap.hasError) {
           return const SizedBox(
             height: 200,
-            child: Center(child: Text('Error cargando los grupos')),
+            child: Center(child: Text('Error cargando los datos')),
           );
         }
-        final grupos = snap.data!;
+        final grupos = snap.data![0] as List<Grupo>;
+        final usuarios = snap.data![1] as List<Usuario>;
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Form(
-            autovalidateMode: AutovalidateMode.onUserInteraction,
             key: _formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -182,39 +178,35 @@ class _AdminUsuarioDialogState extends State<AdminUsuarioDialog> {
                 TextFormField(
                   controller: _emailCtrl,
                   decoration: _inputDecoration('Email', Icons.email).copyWith(
-                    suffixIcon: _checkingEmail
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: Padding(
-                              padding: EdgeInsets.all(4),
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          )
-                        : null,
-                    errorText: _emailError,
+                    suffixIcon: _comprobandoCorreo
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: Padding(
+                            padding: EdgeInsets.all(4),
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : null,
                   ),
-
                   keyboardType: TextInputType.emailAddress,
-                  onChanged: (val) {
-                    // reseteamos el error local
+                  onChanged: (value) {
                     if (_emailError != null) {
-                      setState(() => _emailError = null);
+                      setState(() {
+                        _emailError = null;
+                      });
                     }
-                    // y lanzamos la comprobación si lleva un '@'
-                    if (val.contains('@')) {
-                      _comprobarMail(val.trim());
-                    }
+                    _comprobarCorreo(value.trim(), usuarios);
                   },
                   validator: (value) {
-                    if (value  == null|| value.isEmpty){
-                      return "Introduce un correo";
+                    if (value == null || value.isEmpty) {
+                      return 'Introduce un correo';
                     }
-                    if (_emailError != null){
+                    if (_emailError != null) {
                       return _emailError;
                     }
                     return null;
-                  }
+                  },
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -235,7 +227,11 @@ class _AdminUsuarioDialogState extends State<AdminUsuarioDialog> {
                   items: Rol.values
                       .map((rol) => DropdownMenuItem(value: rol, child: Text(rol.name)))
                       .toList(),
-                  onChanged: (rol) => setState(() => _rolSeleccionado = rol),
+                  onChanged: (value)  {
+                    setState(() {
+                      _rolSeleccionado = value;
+                    });
+                  },
                   validator: (value) {
                     if (value  == null){
                       return "Selecciona un rol";
@@ -250,7 +246,11 @@ class _AdminUsuarioDialogState extends State<AdminUsuarioDialog> {
                   items: grupos
                       .map((grupo) => DropdownMenuItem(value: grupo, child: Text(grupo.nombre)))
                       .toList(),
-                  onChanged: (grupo) => setState(() => _grupoSeleccionado = grupo),
+                  onChanged: (value) {
+                    setState(() {
+                      _grupoSeleccionado = value;
+                    });
+                  },
                   validator: (value) {
                     if (value  == null){
                       return "Selecciona un rol";

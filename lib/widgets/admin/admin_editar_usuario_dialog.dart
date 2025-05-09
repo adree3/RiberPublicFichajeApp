@@ -1,0 +1,306 @@
+import 'package:flutter/material.dart';
+import 'package:riber_republic_fichaje_app/model/grupo.dart';
+import 'package:riber_republic_fichaje_app/model/usuario.dart';
+import 'package:riber_republic_fichaje_app/service/grupo_service.dart';
+import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
+
+typedef OnUsuarioEdited = void Function();
+
+class AdminUsuarioEditarDialog extends StatefulWidget {
+  final Usuario usuario;
+  final OnUsuarioEdited onEdited;
+
+  const AdminUsuarioEditarDialog({
+    Key? key,
+    required this.usuario,
+    required this.onEdited,
+  }) : super(key: key);
+
+  @override
+  _AdminUsuarioEditarDialogState createState() =>
+      _AdminUsuarioEditarDialogState();
+}
+
+class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _nombreCtrl;
+  late TextEditingController _apellido1Ctrl;
+  late TextEditingController _apellido2Ctrl;
+  late TextEditingController _emailCtrl;
+  late TextEditingController _contraCtrl;
+
+  Rol? _rolSeleccionado;
+  Grupo? _grupoSeleccionado;
+  Estado? _estadoSeleccionado;
+
+  late Future<List<dynamic>> _futureData;
+  bool _loading = false;
+  bool _checkingEmail = false;
+  String? _emailError;
+
+  @override
+  void initState() {
+    super.initState();
+    final u = widget.usuario;
+    _nombreCtrl = TextEditingController(text: u.nombre);
+    _apellido1Ctrl = TextEditingController(text: u.apellido1);
+    _apellido2Ctrl = TextEditingController(text: u.apellido2 ?? '');
+    _emailCtrl = TextEditingController(text: u.email);
+    _contraCtrl = TextEditingController();
+    _rolSeleccionado = u.rol;
+    _estadoSeleccionado = u.estado;
+    // Cargamos grupos y lista de usuarios para validar email
+    _futureData = Future.wait([
+      GrupoService().getGrupos(),
+      UsuarioService().getUsuarios(),
+    ]);
+  }
+
+  @override
+  void dispose() {
+    _nombreCtrl.dispose();
+    _apellido1Ctrl.dispose();
+    _apellido2Ctrl.dispose();
+    _emailCtrl.dispose();
+    _contraCtrl.dispose();
+    super.dispose();
+  }
+
+  InputDecoration _inputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      prefixIcon: Icon(icon),
+      labelText: label,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+      errorMaxLines: 2,
+    );
+  }
+
+  Future<void> _comprobarCorreo(
+      String email, List<Usuario> todosUsuarios) async {
+    setState(() => _checkingEmail = true);
+    // excluimos el usuario que estamos editando
+    final otros = todosUsuarios
+        .where((u) => u.id != widget.usuario.id)
+        .toList();
+    final enUso = otros.any(
+        (u) => u.email.toLowerCase() == email.toLowerCase().trim());
+    setState(() {
+      _emailError = enUso ? 'Este correo ya está registrado' : null;
+      _checkingEmail = false;
+    });
+    _formKey.currentState?.validate();
+  }
+
+  /// Metodo para editar el usuario, no utilizo el objeto usuario, porque si no introduce la contraseña
+  /// para editar, no quiero que se envie.
+  Future<void> _editarUsuario(int grupoId) async {
+    setState(() => _loading = true);
+    try {
+      final usuarioEditar = <String, dynamic>{
+        'nombre': _nombreCtrl.text.trim(),
+        'apellido1': _apellido1Ctrl.text.trim(),
+        'apellido2': _apellido2Ctrl.text.trim().isEmpty
+            ? null
+            : _apellido2Ctrl.text.trim(),
+        'email': _emailCtrl.text.trim(),
+        'rol': _rolSeleccionado!.name,
+        'estado': _estadoSeleccionado!.name,
+      };
+      final nuevaContra = _contraCtrl.text.trim();
+      if (nuevaContra.isNotEmpty) {
+        usuarioEditar['contrasena'] = nuevaContra;
+      }
+
+      await UsuarioService.editarUsuario(widget.usuario.id, usuarioEditar, grupoId);
+      widget.onEdited();
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al actualizar el usuario')),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return FutureBuilder<List<dynamic>>(
+      future: _futureData,
+      builder: (ctx, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return const SizedBox(
+            height: 200,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (snap.hasError) {
+          return const SizedBox(
+            height: 200,
+            child: Center(child: Text('Error cargando datos')),
+          );
+        }
+
+        final grupos = snap.data![0] as List<Grupo>;
+        final usuarios = snap.data![1] as List<Usuario>;
+
+        // preseleccionamos el grupo si no lo hemos hecho
+        _grupoSeleccionado ??= grupos.firstWhere(
+          (g) => g.id == widget.usuario.grupoId,
+          orElse: () => grupos.first,
+        );
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Nombre
+                TextFormField(
+                  controller: _nombreCtrl,
+                  decoration: _inputDecoration('Nombre', Icons.person),
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Introduce un nombre' : null,
+                ),
+                const SizedBox(height: 12),
+
+                // Apellido1
+                TextFormField(
+                  controller: _apellido1Ctrl,
+                  decoration: _inputDecoration('Apellido 1', Icons.badge),
+                  validator: (v) => v == null || v.isEmpty
+                      ? 'Introduce un apellido'
+                      : null,
+                ),
+                const SizedBox(height: 12),
+
+                // Apellido2
+                TextFormField(
+                  controller: _apellido2Ctrl,
+                  decoration: _inputDecoration(
+                      'Apellido 2 (opcional)', Icons.badge_outlined),
+                ),
+                const SizedBox(height: 12),
+
+                // Email con check
+                TextFormField(
+                  controller: _emailCtrl,
+                  decoration: _inputDecoration('Email', Icons.email).copyWith(
+                    suffixIcon: _checkingEmail
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: Padding(
+                              padding: EdgeInsets.all(4),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : null,
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  autocorrect: false,
+                  onChanged: (val) {
+                    if (_emailError != null) setState(() => _emailError = null);
+                    if (val.contains('@')) {
+                      _comprobarCorreo(val.trim(), usuarios);
+                    }
+                  },
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Introduce un correo';
+                    if (_emailError != null) return _emailError;
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                // Contraseña nueva opcional
+                TextFormField(
+                  controller: _contraCtrl,
+                  decoration: _inputDecoration(
+                      'Nueva contraseña (opcional)', Icons.lock),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 12),
+
+                // Rol
+                DropdownButtonFormField<Rol>(
+                  value: _rolSeleccionado,
+                  decoration:
+                      _inputDecoration('Rol', Icons.admin_panel_settings),
+                  items: Rol.values
+                      .map((r) =>
+                          DropdownMenuItem(value: r, child: Text(r.name)))
+                      .toList(),
+                  onChanged: (r) => setState(() => _rolSeleccionado = r),
+                  validator: (v) => v == null ? 'Selecciona un rol' : null,
+                ),
+                const SizedBox(height: 12),
+
+                // Grupo
+                DropdownButtonFormField<Grupo>(
+                  value: _grupoSeleccionado,
+                  decoration: _inputDecoration('Grupo', Icons.group),
+                  items: grupos
+                      .map((g) =>
+                          DropdownMenuItem(value: g, child: Text(g.nombre)))
+                      .toList(),
+                  onChanged: (g) => setState(() => _grupoSeleccionado = g),
+                  validator: (v) => v == null ? 'Selecciona un grupo' : null,
+                ),
+                const SizedBox(height: 12),
+
+                // Estado
+                DropdownButtonFormField<Estado>(
+                  value: _estadoSeleccionado,
+                  decoration:
+                      _inputDecoration('Estado', Icons.toggle_on),
+                  items: Estado.values
+                      .map((e) => DropdownMenuItem(
+                          value: e, child: Text(e.name)))
+                      .toList(),
+                  onChanged: (e) => setState(() => _estadoSeleccionado = e),
+                  validator: (v) => v == null ? 'Selecciona estado' : null,
+                ),
+                const SizedBox(height: 24),
+
+                // Botón actualizar
+                ElevatedButton(
+                  onPressed: _loading
+                      ? null
+                      : () {
+                          if (_formKey.currentState!.validate()) {
+                            _editarUsuario(_grupoSeleccionado!.id!);
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(44),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Actualizar Usuario'),
+                ),
+                const SizedBox(height: 8),
+
+                // Cancelar
+                TextButton(
+                  onPressed: _loading
+                      ? null
+                      : () => Navigator.pop(context),
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

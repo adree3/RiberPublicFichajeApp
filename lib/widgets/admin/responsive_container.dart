@@ -1,5 +1,3 @@
-// lib/widgets/responsive_form_container.dart
-
 import 'package:flutter/material.dart';
 import 'package:riber_republic_fichaje_app/utils/tamanos.dart';
 

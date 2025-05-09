@@ -1,10 +1,9 @@
-// lib/screens/admin/admin_users_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
 import 'package:riber_republic_fichaje_app/utils/tamanos.dart';
 import 'package:riber_republic_fichaje_app/widgets/admin/admin_crear_usuario_dialog.dart';
+import 'package:riber_republic_fichaje_app/widgets/admin/admin_editar_usuario_dialog.dart';
 
 class AdminUsuariosScreen extends StatefulWidget {
   const AdminUsuariosScreen({super.key});
@@ -38,17 +37,12 @@ class _AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          title: const Center(
-            child: Text(
-              'Crear Usuario',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
+          title: const Center(child: Text('Crear Usuario',style: TextStyle(fontWeight: FontWeight.bold))),
           insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
           contentPadding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
           content: SizedBox(
             width: 360,
-            child: AdminUsuarioDialog(
+            child: AdminUsuarioCrearDialogo(
               onCreated: () => Navigator.of(context).pop(true),
             ),
           ),
@@ -64,13 +58,32 @@ class _AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
     });
   }
 
-  void _onEdit(Usuario user) async {
-    final result = await Navigator.pushNamed(
-      context,
-      '/admin/users/edit',
-      arguments: user,
-    ) as bool?;
-    if (result == true) _refresh();
+  void _onEdit(Usuario usuario) async {
+    showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Center(child: Text('Editar Usuario',style: TextStyle(fontWeight: FontWeight.bold))),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+          contentPadding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+          content:  SizedBox(
+            width: 360,
+            child: AdminUsuarioEditarDialog(
+              usuario: usuario,
+              onEdited: () => Navigator.of(context).pop(true),
+            ),
+          ),
+        );
+      }
+    ).then((edited) {
+      if (edited == true) {
+        _refresh(); 
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Usuario actualizado')),
+        );
+      }
+    });
   }
 
   void _onDeleteConfirmed(Usuario usuario) async {
@@ -126,11 +139,11 @@ class _AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
                 itemCount: lista.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (_, i) {
-                  final u = lista[i];
-                  final initials = '${u.nombre[0]}${u.apellido1[0]}';
-                  final bgColor = _avatarColor(u.id);
+                  final usuario = lista[i];
+                  final initials = '${usuario.nombre[0]}${usuario.apellido1[0]}';
+                  final bgColor = _avatarColor(usuario.id);
                   return Dismissible(
-                    key: ValueKey(u.id),
+                    key: ValueKey(usuario.id),
                     direction: DismissDirection.endToStart,
                     background: Container(
                       alignment: Alignment.centerRight,
@@ -142,7 +155,7 @@ class _AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
                       context: context,
                       builder: (dctx) => AlertDialog(
                         title: const Text('Eliminar usuario'),
-                        content: Text('¿Eliminar a ${u.nombre} ${u.apellido1}?'),
+                        content: Text('¿Eliminar a ${usuario.nombre} ${usuario.apellido1}?'),
                         actions: [
                           TextButton(
                               onPressed: () => Navigator.pop(dctx, false),
@@ -153,7 +166,7 @@ class _AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
                         ],
                       ),
                     ),
-                    onDismissed: (_) => _onDeleteConfirmed(u),
+                    onDismissed: (_) => _onDeleteConfirmed(usuario),
                     child: Card(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
@@ -164,11 +177,11 @@ class _AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
                           foregroundColor: Colors.white,
                           child: Text(initials),
                         ),
-                        title: Text('${u.nombre} ${u.apellido1}'),
-                        subtitle: Text(u.email),
+                        title: Text('${usuario.nombre} ${usuario.apellido1}'),
+                        subtitle: Text(usuario.email),
                         trailing: IconButton(
                           icon: const Icon(Icons.edit),
-                          onPressed: () => _onEdit(u),
+                          onPressed: () => _onEdit(usuario),
                         ),
                       ),
                     ),

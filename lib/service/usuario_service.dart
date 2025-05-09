@@ -6,20 +6,20 @@ import 'package:riber_republic_fichaje_app/utils/api_config.dart';
 
 class UsuarioService {
   static String get baseUrl => ApiConfig.baseUrl + '/usuarios';
-  /// Obtiene todos los usuarios
-  /// GET /usuarios/
+
+  /// Obtiene los usuarios activos
+  /// GET /usuarios/activos
   Future<List<Usuario>> getUsuarios() async {
-    final response = await http.get(Uri.parse('$baseUrl/'));
-
-
+    final response = await http.get(Uri.parse('$baseUrl/activos'));
     if (response.statusCode == 200) {
       final utf8Body = utf8.decode(response.bodyBytes);
-      final List<dynamic> jsonList = jsonDecode(utf8Body);
-      return jsonList.map((json) => Usuario.fromJson(json)).toList();
+      final List<dynamic> lista = jsonDecode(utf8Body);
+      return lista.map((json) => Usuario.fromJson(json)).toList();
     } else {
       throw Exception('Error al obtener usuarios');
     }
   }
+
   /// Obtiene los horarios de hoy de un usuario
   /// GET /usuarios/{idUsuario}/horarioHoy
   static Future<HorarioHoy> getHorarioDeHoy(int idUsuario) async {
@@ -79,17 +79,17 @@ class UsuarioService {
 
   /// Edita un usuario
   /// PUT /usuarios/editarUsuario/{id}/update?idGrupo={idGrupo}
-  static Future<Usuario> actualizarUsuario(int idUsuario,Usuario usuario,int idGrupo,) async {
+  static Future<Usuario> editarUsuario(int idUsuario, Map<String, dynamic> usuarioEditado, int idGrupo) async {
     final response = await http.put(
       Uri.parse('$baseUrl/editarUsuario/$idUsuario?idGrupo=$idGrupo'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(usuario.toJson()),
+      body: jsonEncode(usuarioEditado),
     );
     if (response.statusCode == 200) {
       return Usuario.fromJson(jsonDecode(response.body));
     } else {
       throw Exception(
-        'Error al actualizar el usuario (${response.statusCode}): ${response.body}',
+        'Error al actualizar usuario (${response.statusCode}): ${response.body}',
       );
     }
   }
