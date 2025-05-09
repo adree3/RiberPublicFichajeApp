@@ -35,7 +35,6 @@ class AdminDrawer extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Header centrado
           DrawerHeader(
             margin: EdgeInsets.zero,
             padding: const EdgeInsets.symmetric(vertical: 24),

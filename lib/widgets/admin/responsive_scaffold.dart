@@ -6,36 +6,36 @@ import 'package:riber_republic_fichaje_app/widgets/admin/admin_drawer.dart';
 
 class ResponsiveScaffold extends StatelessWidget {
   final Widget body;
-  final List<NavigationDestination> destinations;
+  final List<NavigationDestination> pantallas;
   final int selectedIndex;
   final ValueChanged<int> onIndexSelected;
 
   const ResponsiveScaffold({
-    Key? key,
+    super.key,
     required this.body,
-    required this.destinations,
+    required this.pantallas,
     required this.selectedIndex,
     required this.onIndexSelected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
-    final title = destinations[selectedIndex].label;
+    final title = pantallas[selectedIndex].label;
     final isMobile = MediaQuery.of(context).size.width < Tamanos.movilMaxAnchura;
 
 
     if (isMobile) {
       return Scaffold(
         appBar: AppBar(
-          title: Text(destinations[selectedIndex].label),
+          title: Text(pantallas[selectedIndex].label),
           centerTitle: true,
         ),
         drawer: AdminDrawer(
           selectedIndex: selectedIndex,
           onIndexSelected: onIndexSelected,
-          pantallas: destinations,
+          pantallas: pantallas,
         ),
         body: body,
       );
@@ -48,7 +48,7 @@ class ResponsiveScaffold extends StatelessWidget {
           AdminDrawer(
             selectedIndex: selectedIndex,
             onIndexSelected: onIndexSelected,
-            pantallas: destinations,
+            pantallas: pantallas,
           ),
           const VerticalDivider(width: 1),
           Expanded(child: body),

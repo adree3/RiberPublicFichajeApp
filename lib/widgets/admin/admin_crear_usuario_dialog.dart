@@ -263,12 +263,15 @@ class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
                   alignment: Alignment.center,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
+                      elevation: 2,
+                      minimumSize: const Size.fromHeight(44),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
+                      backgroundColor: scheme.primary
                     ),
                     onPressed: _loading ? null : _crearUsuario,
-                    child: const Text('Crear Usuario'),
+                    child: Text('Crear Usuario', style: TextStyle(color: scheme.onPrimary, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -276,15 +279,15 @@ class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
                   alignment: Alignment.center,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
+                      elevation: 2,
+                      minimumSize: const Size.fromHeight(44),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      backgroundColor: scheme.error
+                          borderRadius: BorderRadius.circular(8)),
                     ),
                     onPressed: (){
                       Navigator.pop(context);
                     },
-                    child: Text('Cancelar', style: TextStyle(color: scheme.onPrimary),),
+                    child: Text('Cancelar', style: TextStyle(color: scheme.error, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],

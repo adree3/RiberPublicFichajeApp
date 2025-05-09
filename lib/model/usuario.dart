@@ -22,16 +22,24 @@ class Usuario {
   });
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
+    final grupoField = json['grupo'];
+    int? grupoId;
+    if (grupoField is int) {
+      grupoId = grupoField;
+    } else if (grupoField is Map<String, dynamic>) {
+      grupoId = grupoField['id'] as int?;
+    }
+
     return Usuario(
-      id: json['id'],
-      nombre: json['nombre'],
-      apellido1: json['apellido1'],
-      apellido2: json['apellido2'],
-      email: json['email'],
-      contrasena: json['contrasena'],
+      id: json['id'] as int,
+      nombre: json['nombre'] as String,
+      apellido1: json['apellido1'] as String,
+      apellido2: json['apellido2'] as String?,
+      email: json['email'] as String,
+      contrasena: json['contrasena'] as String?,
       rol: Rol.values.firstWhere((e) => e.name == json['rol']),
       estado: Estado.values.firstWhere((e) => e.name == json['estado']),
-      grupoId: json['grupo']?['id'],
+      grupoId: grupoId,
     );
   }
 

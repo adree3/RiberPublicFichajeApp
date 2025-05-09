@@ -278,23 +278,30 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
+                    elevation: 2,
                     minimumSize: const Size.fromHeight(44),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                      borderRadius: BorderRadius.circular(8)
+                    ),
+                    backgroundColor: scheme.primary
                   ),
-                  child: const Text('Actualizar Usuario'),
+                  child: Text('Actualizar Usuario', style: TextStyle(color: scheme.onPrimary, fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(height: 8),
 
-                // Cancelar
-                TextButton(
+                ElevatedButton(
                   onPressed: _loading
                       ? null
                       : () => Navigator.pop(context),
-                  child: const Text(
-                    'Cancelar',
-                    style: TextStyle(color: Colors.red),
+                  style: ElevatedButton.styleFrom(
+                    elevation: 2,
+                    minimumSize: const Size.fromHeight(44),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)
+                    ),
+                    backgroundColor: scheme.onPrimary
                   ),
+                  child: Text('Cancelar', style: TextStyle(color: scheme.error, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

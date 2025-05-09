@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import 'package:riber_republic_fichaje_app/utils/tamanos.dart';
 
 /// Un contenedor que centra y limita el ancho de formularios
@@ -24,4 +24,4 @@ class ResponsiveFormContainer extends StatelessWidget {
       ),
     );
   }
-}
+}*/
