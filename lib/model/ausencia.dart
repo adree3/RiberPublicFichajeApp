@@ -22,8 +22,28 @@ class Ausencia {
   });
 
   factory Ausencia.fromJson(Map<String, dynamic> json) {
+    final usuarioField = json['usuario'];
+    Usuario usuario;
+    if (usuarioField is int) {
+      usuario = Usuario(
+        id: usuarioField,
+        nombre: '',
+        apellido1: '',
+        apellido2: null,
+        email: '',
+        contrasena: null,
+        rol: Rol.empleado,
+        estado: Estado.activo,
+        grupoId: null,
+      );
+    } else if (usuarioField is Map<String, dynamic>) {
+      usuario = Usuario.fromJson(usuarioField);
+    } else {
+      throw Exception('Campo "usuario" en ausencia inválido: $usuarioField');
+    }
+
     return Ausencia(
-      id: json['id'],
+      id: json['id'] as int?,
       fecha: DateTime.parse(json['fecha']),
       motivo: Motivo.values.firstWhere(
         (e) => e.toString().split('.').last == json['motivo'],
@@ -33,10 +53,10 @@ class Ausencia {
         (e) => e.toString().split('.').last == json['estado'],
         orElse: () => EstadoAusencia.vacio,
       ),
-      justificada: json['justificada'],
-      detalles: json['detalles'],
+      justificada: json['justificada'] as bool,
+      detalles: json['detalles'] as String?,
       tiempoRegistrado: DateTime.parse(json['tiempoRegistrado']),
-      usuario: Usuario.fromJson(json['usuario']),
+      usuario: usuario,
     );
   }
 

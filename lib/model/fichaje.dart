@@ -18,17 +18,36 @@ class Fichaje {
   });
 
   factory Fichaje.fromJson(Map<String, dynamic> json) {
+    final usuarioField = json['usuario'];
+    late final Usuario usuario;
+    if (usuarioField is int) {
+      usuario = Usuario(
+        id: usuarioField,
+        nombre: '',
+        apellido1: '',
+        apellido2: null,
+        email: '',
+        contrasena: null,
+        rol: Rol.empleado,
+        estado: Estado.activo,
+        grupoId: null,
+      );
+    } else if (usuarioField is Map<String, dynamic>) {
+      usuario = Usuario.fromJson(usuarioField);
+    } else {
+      throw Exception('Campo "usuario" inválido en Fichaje: $usuarioField');
+    }
     return Fichaje(
-      id: json['id'],
+      id: json['id'] as int?,
       fechaHoraEntrada: json['fechaHoraEntrada'] != null
-          ? DateTime.parse(json['fechaHoraEntrada'])
+          ? DateTime.parse(json['fechaHoraEntrada'] as String)
           : null,
-      fechaHoraSalida: json['fechaHoraSalida'] != null  
-          ? DateTime.parse(json['fechaHoraSalida'])
+      fechaHoraSalida: json['fechaHoraSalida'] != null
+          ? DateTime.parse(json['fechaHoraSalida'] as String)
           : null,
-      ubicacion: json['ubicacion'],
-      nfcUsado: json['nfcUsado'] ?? false,
-      usuario: Usuario.fromJson(json['usuario']),
+      ubicacion: json['ubicacion'] as String?,
+      nfcUsado: json['nfcUsado'] as bool? ?? false,
+      usuario: usuario,
     );
   }
 

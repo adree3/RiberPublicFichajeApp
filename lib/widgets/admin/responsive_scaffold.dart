@@ -1,3 +1,5 @@
+// lib/widgets/admin/responsive_scaffold.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:riber_republic_fichaje_app/providers/usuario_provider.dart';
@@ -9,6 +11,7 @@ class ResponsiveScaffold extends StatelessWidget {
   final List<NavigationDestination> pantallas;
   final int selectedIndex;
   final ValueChanged<int> onIndexSelected;
+  final Widget? floatingActionButton;
 
   const ResponsiveScaffold({
     super.key,
@@ -16,36 +19,32 @@ class ResponsiveScaffold extends StatelessWidget {
     required this.pantallas,
     required this.selectedIndex,
     required this.onIndexSelected,
+    this.floatingActionButton,
   });
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
-    final title = pantallas[selectedIndex].label;
-    final isMobile = MediaQuery.of(context).size.width < Tamanos.movilMaxAnchura;
-
-
-    if (isMobile) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(pantallas[selectedIndex].label),
-          centerTitle: true,
-        ),
-        drawer: AdminDrawer(
+    final esMovil =MediaQuery.of(context).size.width < Tamanos.movilMaxAnchura;
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(pantallas[selectedIndex].label),
+        centerTitle: true,
+      ),
+      drawer: esMovil
+      ? AdminDrawer(
+          esMovil: true,
           selectedIndex: selectedIndex,
           onIndexSelected: onIndexSelected,
           pantallas: pantallas,
-        ),
-        body: body,
-      );
-    }
-
-    // Escritorio: sidebar fija
-    return Scaffold(
-      body: Row(
+        )
+      : null,
+      body: esMovil 
+      ? body
+      : Row(
         children: [
           AdminDrawer(
+            esMovil: false,
             selectedIndex: selectedIndex,
             onIndexSelected: onIndexSelected,
             pantallas: pantallas,
@@ -54,6 +53,7 @@ class ResponsiveScaffold extends StatelessWidget {
           Expanded(child: body),
         ],
       ),
+      floatingActionButton: floatingActionButton,
     );
   }
 }

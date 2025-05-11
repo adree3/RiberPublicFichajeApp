@@ -3,12 +3,14 @@ import 'package:provider/provider.dart';
 import 'package:riber_republic_fichaje_app/providers/usuario_provider.dart';
 
 class AdminDrawer extends StatelessWidget {
+  final bool esMovil; 
   final int selectedIndex;
   final ValueChanged<int> onIndexSelected;
   final List<NavigationDestination> pantallas;
 
   const AdminDrawer({
     super.key,
+    required this.esMovil,  
     required this.selectedIndex,
     required this.onIndexSelected,
     required this.pantallas,
@@ -102,7 +104,9 @@ class AdminDrawer extends StatelessWidget {
                   ),
                   onTap: () {
                     onIndexSelected(i);
-                    Navigator.pop(context);
+                    if (esMovil) {
+                      Navigator.pop(context);
+                    }
                   },
                 );
               },
