@@ -6,6 +6,7 @@ import 'package:riber_republic_fichaje_app/utils/api_config.dart';
 class AusenciaService {
   static String get baseUrl => ApiConfig.baseUrl + '/ausencias';
 
+  /// Obtiene todas las ausencias
   /// GET /ausencias/
   Future<List<Ausencia>> getAusencias() async {
     final response = await http.get(Uri.parse('$baseUrl/'));
@@ -19,6 +20,7 @@ class AusenciaService {
     }
   }
 
+  /// Comprueba si la ausencia existe
   /// GET /ausencias/{idUsuario}/existe
   static Future<bool> existeAusencia(int idUsuario, DateTime fecha) async {
     final iso = fecha.toIso8601String().split('T').first;
@@ -30,7 +32,8 @@ class AusenciaService {
     throw Exception('Error comprobando ausencia (${resp.statusCode})');
   }
 
-  /// POST /ausencias/nuevaAusencia}
+  /// Crea una nueva ausencia segun el id del usuario
+  /// POST /ausencias/nuevaAusencia/{idUsuario}
   static Future<Ausencia> crearAusencia({required int idUsuario, required DateTime fecha, required Motivo motivo, String? detalles}) async {
     final response = await http.post(
       Uri.parse('$baseUrl/nuevaAusencia?idUsuario=$idUsuario'),
@@ -41,10 +44,29 @@ class AusenciaService {
         'detalles': detalles,
       }),
     );
-
     if (response.statusCode == 200 || response.statusCode == 201) {
       return Ausencia.fromJson(jsonDecode(response.body));
     }
     throw Exception('Error al justificar ausencia (${response.statusCode}): ${response.body}');
   }
+
+  /// Edita la ausencia y dice si es justificada o no segun el estado de la ausencia
+  /// POST /ausencias/editarAusencia/{idAusencia}}
+  static Future<Ausencia> actualizarAusencia({required int idAusencia, required EstadoAusencia estado, String? detalles}) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/editarAusencia/$idAusencia'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'estado': estado.toString().split('.').last,
+        if (detalles != null) 'detalles': detalles,
+      }),
+    );
+    if (response.statusCode == 200) {
+      final utf8Body = utf8.decode(response.bodyBytes);
+      return Ausencia.fromJson(jsonDecode(utf8Body));
+    } else {
+      throw Exception('Error al actualizar ausencia (${response.statusCode})');
+    }
+  }
 }
+

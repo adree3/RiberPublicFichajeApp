@@ -41,7 +41,6 @@ class Ausencia {
     } else {
       throw Exception('Campo "usuario" en ausencia inválido: $usuarioField');
     }
-
     return Ausencia(
       id: json['id'] as int?,
       fecha: DateTime.parse(json['fecha']),
