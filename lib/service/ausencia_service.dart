@@ -68,5 +68,20 @@ class AusenciaService {
       throw Exception('Error al actualizar ausencia (${response.statusCode})');
     }
   }
+
+  /// Genera todas las ausencias posibles a partir de los fichajes
+  /// POST /ausencias/generarAusencias
+  static Future<void> generarAusencias() async {
+    final resp = await http.post(
+      Uri.parse('$baseUrl/generarAusencias'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (resp.statusCode != 204) {
+      throw Exception(
+        'Error al generar ausencias (${resp.statusCode}): ${resp.body}',
+      );
+    }
+  }
+
 }
 

@@ -219,7 +219,6 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
         if (snap.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
         }
-
         return Column(
           children: [
             Padding(
@@ -255,14 +254,14 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
                           value: null,
                           child: Text('Todos'),
                         ),
-                        ..._grupos.map((g) => DropdownMenuItem<Grupo>(
-                              value: g,
-                              child: Text(g.nombre),
+                        ..._grupos.map((grupo) => DropdownMenuItem<Grupo>(
+                              value: grupo,
+                              child: Text(grupo.nombre),
                             )),
                       ],
-                      onChanged: (g) {
+                      onChanged: (value) {
                         setState(() {
-                          _filtrarGrupo = g;
+                          _filtrarGrupo = value;
                         });
                       },
                     ),
@@ -303,7 +302,7 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
                           backgroundColor: colorFondo,
                           child: Text(iniciales),
                         ),
-                        title: Text('${usuario.nombre} ${usuario.apellido1}'),
+                        title: Text('${usuario.nombre} ${usuario.apellido1} ${usuario.apellido2 ?? ""}'),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -315,6 +314,12 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            IconButton(
+                              icon: Icon(Icons.edit, color: scheme.primary),
+                              onPressed: () {
+                                _onEdit(usuario, scheme);
+                              }
+                            ),
                             IconButton(
                               icon: Icon(Icons.delete, color: scheme.error),
                               onPressed: () async {
@@ -328,11 +333,7 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
                                 }
                               },
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () =>
-                                  _onEdit(usuario, scheme),
-                            ),
+                            
                           ],
                         ),
                       ),
