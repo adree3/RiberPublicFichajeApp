@@ -81,8 +81,7 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
           insetPadding:
               const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
           contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           content: SizedBox(
             width: 360,
             child: AdminUsuarioCrearDialogo(

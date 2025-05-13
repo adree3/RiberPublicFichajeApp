@@ -20,15 +20,20 @@ class GrupoService {
     }
   }
 
-  /// Crea un grupo por los parametros recibidos
-  /// POST /grupos/nuevoGrupo
-  Future<bool> crearGrupo(Grupo grupo) async {
+  /// POST /grupos/crearGrupo
+  static Future<Grupo> crearGrupo({required String nombre, required List<int> usuariosIds}) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/nuevoGrupo'),
+      Uri.parse('$baseUrl/crearGrupo'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(grupo.toJson()),
+      body: jsonEncode({
+        'nombre': nombre,
+        'usuariosIds': usuariosIds,
+      }),
     );
-    return response.statusCode == 201;
+    if (response.statusCode == 201) {
+      return Grupo.fromJson(jsonDecode(response.body));
+    }
+    throw Exception('Error creando grupo (${response.statusCode})');
   }
 
   /// Actualiza un grupo y si se han asignado o desasignado usuarios al grupo también se actualiza

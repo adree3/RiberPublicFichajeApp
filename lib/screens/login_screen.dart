@@ -149,7 +149,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         
                         const SizedBox(height: 40),
-
                         _loading
                         ? CircularProgressIndicator(color: scheme.primary)
                         : SizedBox(

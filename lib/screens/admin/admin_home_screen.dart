@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:riber_republic_fichaje_app/screens/admin/admin_grupos_screen.dart';
+import 'package:riber_republic_fichaje_app/screens/admin/admin_horarios_screen.dart';
 import 'package:riber_republic_fichaje_app/screens/admin/admin_usuarios_screen.dart';
 import 'package:riber_republic_fichaje_app/screens/admin/admin_ausencias_screen.dart';
 import 'package:riber_republic_fichaje_app/service/ausencia_service.dart';
@@ -17,13 +18,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   int _selectedIndex = 0;
   final _usuariosKey = GlobalKey<AdminUsuariosScreenState>();
   final _ausenciasKey  = GlobalKey<AdminAusenciasScreenState>();
-
+  final _gruposkey  = GlobalKey<AdminGruposScreenState>();
 
   static final pantallas = [
     NavigationDestination(icon: Icon(Icons.person), label: 'Usuarios'),
-    //NavigationDestination(icon: Icon(Icons.schedule),    label: 'Horarios'),
-    NavigationDestination(icon: Icon(Icons.event_busy), label: 'Ausencias'),
     NavigationDestination(icon: Icon(Icons.group), label: 'Grupos'),
+    NavigationDestination(icon: Icon(Icons.schedule),    label: 'Horarios'),
+    NavigationDestination(icon: Icon(Icons.event_busy), label: 'Ausencias'),
   ];
 
   late final List<Widget> _screens;
@@ -34,36 +35,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     // 3) Ahora sí puedes usar los keys
     _screens = [
       AdminUsuariosScreen(key: _usuariosKey),
-      //const Placeholder(),           // Grupos
+      AdminGruposScreen(key: _gruposkey),
+      AdminHorariosScreen(),
       AdminAusenciasScreen(key: _ausenciasKey),
-      AdminGruposScreen()
     ];
   }
 
-  
-
-  /*@override
-  Widget build(BuildContext context) {
-    Widget body;
-    switch (_selectedIndex) {
-      case 0:
-        body = AdminUsuariosScreen(key: _usuariosKey);
-        break;
-      case 1:
-        body = AdminAusenciasScreen();
-        break;
-      default:
-        body = const SizedBox();
-    }
-
-    return ResponsiveScaffold(
-      body: body,
-      pantallas: pantallas,
-      selectedIndex: _selectedIndex,
-      onIndexSelected: (i) => setState(() => _selectedIndex = i),
-      floatingActionButton: _buildCrear(),
-    );
-  }*/
   @override
   Widget build(BuildContext context) {
     return ResponsiveScaffold(
@@ -85,7 +62,17 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             _usuariosKey.currentState?.onCreate();
           },
         );
-      case 1: // Ausencias
+      
+      case 1: // Grupos
+        return FloatingActionButton.extended(
+          icon: const Icon(Icons.add),
+          label: const Text('Nuevo'),
+          onPressed: () {
+            _gruposkey.currentState?.crearGrupoDialogo();
+          },
+        );
+
+      case 3: // Ausencias
         return FloatingActionButton.extended(
           icon: const Icon(Icons.refresh),
           label: const Text('Generar'),
