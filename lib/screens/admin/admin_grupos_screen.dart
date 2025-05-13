@@ -313,38 +313,52 @@ class _AdminGruposScreenState extends State<AdminGruposScreen> {
                       ),
                       const SizedBox(height: 16),
                 
-                      TypeAheadFormField<Usuario>(
-                        textFieldConfiguration: TextFieldConfiguration(
-                          controller: buscarCtrl,
-                          decoration: InputDecoration(
-                            labelText: 'Añadir usuario',
-                            prefixIcon: Icon(Icons.search, color: scheme.primary),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
-                        ),
-                        suggestionsCallback: (input) {
-                          final q = input.toLowerCase();
-                          return _usuarios.where((usuario) {
-                            // 1) no está ya en miembros
-                            if (usuarios.any((miembro) => miembro.id == usuario.id)) return false;
-                            // 2) coincide con el texto
-                            return usuario.email.toLowerCase().contains(q);
-                          }).toList();
-                        },
-                        itemBuilder: (ctx, usuario) => ListTile(
-                          title: Text(usuario.email),
-                        ),
-                        onSuggestionSelected: (usuario) {
-                          setDialog(() {
-                            usuarios.add(usuario);
-                          });
-                          buscarCtrl.clear();
-                        },
-                        noItemsFoundBuilder: (ctx) => const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text('No se encontraron alumnos'),
-                        ),
-                      ),
+                      TypeAheadField<Usuario>(
+  // 1) Aquí contruyes tú mismo el TextField:
+  builder: (BuildContext context, TextEditingController tc, FocusNode fn) {
+    return TextField(
+      controller: tc,
+      focusNode: fn,
+      decoration: InputDecoration(
+        labelText: 'Añadir usuario',
+        prefixIcon: Icon(Icons.search, color: scheme.primary),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  },
+  // 2) Callback de sugerencias (igual que antes)
+  suggestionsCallback: (input) {
+    final q = input.toLowerCase();
+    return _usuarios.where((usuario) {
+      if (usuarios.any((miembro) => miembro.id == usuario.id)) return false;
+      return usuario.email.toLowerCase().contains(q);
+    }).toList();
+  },
+  // 3) Cómo pintar cada sugerencia
+  itemBuilder: (BuildContext ctx, Usuario usuario) {
+    return ListTile(
+      title: Text(usuario.email),
+    );
+  },
+  // 4) ¡OJO! el parámetro ya no es onSuggestionSelected, sino onSelected:
+  onSelected: (Usuario usuario) {
+    setDialog(() {
+      usuarios.add(usuario);
+    });
+    buscarCtrl.clear();
+  },
+  // 5) Y noItemsFoundBuilder ahora es emptyBuilder
+  emptyBuilder: (BuildContext ctx) {
+    return const Padding(
+      padding: EdgeInsets.all(8.0),
+      child: Text('No se encontraron alumnos'),
+    );
+  },
+),
+
+
                       const SizedBox(height: 24),
                 
                       Align(

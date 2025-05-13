@@ -44,16 +44,10 @@ class _LoginScreenState extends State<LoginScreen> {
         final usuarioJson = jsonEncode(usuario.toJson());
         await prefs.setString('usuario', usuarioJson);
       }
-      final esAdmin   = usuario.rol == Rol.jefe;
-      final esEscritorio = kIsWeb 
-        || Platform.isWindows 
-        || Platform.isLinux 
-        || Platform.isMacOS;
-
-      final ruta =
-          (esAdmin && esEscritorio)
-            ? '/admin_home'
-            : '/home';
+      final esAdmin = usuario.rol == Rol.jefe;
+      final ruta = esAdmin
+        ? '/admin_home'
+        : '/home';
 
       Navigator.pushReplacementNamed(context, ruta);
     } else {

@@ -22,7 +22,8 @@ dependencies:
   provider: ^6.1.2
   path: ^1.9.0
   collection: ^1.17.0
-  flutter_typeahead: ^4.0.0
+  flutter_typeahead: ^5.2.0
+  flutter_keyboard_visibility: ^6.0.0
 
   
 dev_dependencies:

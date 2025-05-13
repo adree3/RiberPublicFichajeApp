@@ -3,7 +3,8 @@ import 'dart:io' show Platform;
 class ApiConfig {
   static String get host {
     if (Platform.isAndroid) {
-      return '10.0.2.2';
+      //return '10.0.2.2';
+      return '192.168.146.182';
     } else {
       return 'localhost';
     }
