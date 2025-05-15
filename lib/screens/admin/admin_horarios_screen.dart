@@ -19,14 +19,14 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
   Grupo? _filtroGrupo;
   Dia? _filtroDia;
 
-  Color _avatarColor(int id) =>
-      Colors.primaries[id % Colors.primaries.length];
+  /// Al iniciar la pantalla carga los datos
   @override
   void initState() {
     super.initState();
     _initData = _cargarDatos();
   }
 
+  /// Recibe del service los grupos y horarios
   Future<void> _cargarDatos() async {
     final grupos   = await GrupoService().getGrupos();
     final horarios = await HorarioService.getHorarios();
@@ -35,6 +35,10 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
       _horarios = horarios;
     });
   }
+
+  /// Calcula el color por el id recibido
+  Color _avatarColor(int id) =>
+    Colors.primaries[id % Colors.primaries.length];
 
   @override
   Widget build(BuildContext context) {
@@ -52,10 +56,9 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
         if (_grupos.isEmpty) {
           return const Center(child: Text('No hay grupos.'));
         }
+        // filtra los grupos por el filtro y de esos filtra los que tengan al menos un horario 
         final gruposFiltrados = _grupos.where((g) {
-          // 1) Si hay filtro de grupo, solo este
           if (_filtroGrupo != null && g.id != _filtroGrupo!.id) return false;
-          // 2) Debe tener al menos un horario que pase el filtro de día
           return _horarios.any((h) =>
             h.grupoId == g.id
             && (_filtroDia == null || h.dia == _filtroDia)
@@ -70,6 +73,7 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
                   // Filtro de Grupo
                   Expanded(
                     child: DropdownButtonFormField<Grupo?>(
+                      isExpanded: true,
                       value: _filtroGrupo,
                       decoration: InputDecoration(
                         labelText: 'Filtrar por Grupo',
@@ -88,8 +92,10 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
+                  // Filtro del dia
                   Expanded(
                     child: DropdownButtonFormField<Dia?>(
+                      isExpanded: true,   
                       value: _filtroDia,
                       decoration: InputDecoration(
                         labelText: 'Filtrar por Día',
@@ -112,16 +118,16 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
             ),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, kBottomNavigationBarHeight + 16),
                 itemCount: gruposFiltrados.length,
                 itemBuilder: (ctx, i) {
                   final grupo = gruposFiltrados[i];
-                  // extraemos solo los horarios de este grupo
+                  // cogemos solo los horarios de este grupo
                   final horariosDelGrupo = _horarios
                       .where((horario) => horario.grupoId == grupo.id&& (_filtroDia == null || horario.dia == _filtroDia))
                       .toList()
                     ..sort((a, b) {
-                      // opcional: ordenar por día y hora de entrada
+                      // Se ordena la lista de lunes a viernes
                       final diaOrden = ['lunes','martes','miercoles','jueves','viernes'];
                       final da = diaOrden.indexOf(a.dia.name);
                       final db = diaOrden.indexOf(b.dia.name);
@@ -157,14 +163,14 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
                           ),
                         ]
                       : horariosDelGrupo
-                        .asMap() // convierte en Map<índice, Horario>
+                        .asMap()
                         .entries
                         .map((entry) {
-                          final idx     = entry.key;
+                          final idx = entry.key;
                           final horario = entry.value;
                           final entrada = horario.horaEntrada.substring(0, 5);
-                          final salida  = horario.horaSalida.substring(0, 5);
-                          final diaTxt  = horario.dia.name[0].toUpperCase() +
+                          final salida = horario.horaSalida.substring(0, 5);
+                          final diaTxt = horario.dia.name[0].toUpperCase() +
                             horario.dia.name.substring(1);
               
                           return ListTile(
@@ -224,22 +230,26 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
       },
     );
   }
+  /// Dialogo para editar un horario
   Future<void> _editarHorario(Horario horario) async {
     final scheme = Theme.of(context).colorScheme;
-    // Parseamos los String "HH:mm:ss" a TimeOfDay
+    final _formKey = GlobalKey<FormState>();
+    // Parsea de "HH:mm:ss" a TimeOfDay
     TimeOfDay parseTime(String s) {
       final parts = s.split(':');
       return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
     }
     TimeOfDay entrada = parseTime(horario.horaEntrada);
     TimeOfDay salida  = parseTime(horario.horaSalida);
-    Grupo selectedGroup = _grupos.firstWhere((g) => g.id == horario.grupoId);
+    Grupo grupoSeleccionado = _grupos.firstWhere((g) => g.id == horario.grupoId);
+    Dia? diaSeleccionado = horario.dia;
 
     final nuevoHorario = await showDialog<Horario>(
       context: context,
       barrierDismissible: false,
       builder: (dctx) => StatefulBuilder(
         builder: (dctx, setDialog) {
+          // comprueba que la hora salida sea posterior a la de entrada
           final horaValida = salida.hour < entrada.hour || (salida.hour == entrada.hour && salida.minute <= entrada.minute);
 
           return AlertDialog(
@@ -262,60 +272,89 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
             ),
             titlePadding: EdgeInsets.zero,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Selector de grupo
-                DropdownButtonFormField<Grupo>(
-                  value: selectedGroup,
-                  decoration: const InputDecoration(labelText: 'Grupo'),
-                  items: _grupos.map((g) {
-                    return DropdownMenuItem(value: g, child: Text(g.nombre));
-                  }).toList(),
-                  onChanged: (g) => setDialog(() => selectedGroup = g!),
-                ),
-                const SizedBox(height: 16),
-                // Entrada
-                Row(
-                  children: [
-                    Expanded(child: Text('Entrada: ${entrada.format(context)}')),
-                    TextButton(
-                      onPressed: () async {
-                        final picked = await showTimePicker(
-                          context: context,
-                          initialTime: entrada,
-                        );
-                        if (picked != null) setDialog(() => entrada = picked);
-                      },
-                      child: const Text('Cambiar'),
-                    ),
-                  ],
-                ),
-                // Salida
-                Row(
-                  children: [
-                    Expanded(child: Text('Salida: ${salida.format(context)}')),
-                    TextButton(
-                      onPressed: () async {
-                        final picked = await showTimePicker(
-                          context: context,
-                          initialTime: salida,
-                        );
-                        if (picked != null) setDialog(() => salida = picked);
-                      },
-                      child: const Text('Cambiar'),
-                    ),
-                  ],
-                ),
-                if (horaValida)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    'La hora de salida debe ser posterior a la de entrada',
-                    style: TextStyle(color: scheme.error),
+            content: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<Grupo>(
+                    value: grupoSeleccionado,
+                    decoration: const InputDecoration(labelText: 'Grupo',border: OutlineInputBorder(),),
+                    items: _grupos.map((g) {
+                      return DropdownMenuItem(value: g, child: Text(g.nombre));
+                    }).toList(),
+                    onChanged: (g) => setDialog(() => grupoSeleccionado = g!),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+
+                  DropdownButtonFormField<Dia>(
+                    value: diaSeleccionado,
+                    decoration: const InputDecoration(
+                      labelText: 'Día',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: Dia.values.map((d) =>
+                      DropdownMenuItem(
+                        value: d,
+                        child: Text(d.name[0].toUpperCase() + d.name.substring(1)),
+                      )
+                    ).toList(),
+                    onChanged: (d) => setDialog(() => diaSeleccionado = d),
+                    validator: (d) {
+                      if (d == null) return 'Selecciona un día';
+                      // comprueba que no haya otro horario con el mismo grupo y día
+                      final existe = _horarios.any((h) =>
+                        h.grupoId == grupoSeleccionado.id &&
+                        h.dia == d &&
+                        h.id != horario.id
+                      );
+                      if (existe) return 'Ya existe un horario para ese día';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // Entrada
+                  Row(
+                    children: [
+                      Expanded(child: Text('Entrada: ${entrada.format(context)}')),
+                      TextButton(
+                        onPressed: () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: entrada,
+                          );
+                          if (picked != null) setDialog(() => entrada = picked);
+                        },
+                        child: const Text('Cambiar'),
+                      ),
+                    ],
+                  ),
+                  // Salida
+                  Row(
+                    children: [
+                      Expanded(child: Text('Salida: ${salida.format(context)}')),
+                      TextButton(
+                        onPressed: () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: salida,
+                          );
+                          if (picked != null) setDialog(() => salida = picked);
+                        },
+                        child: const Text('Cambiar'),
+                      ),
+                    ],
+                  ),
+                  if (horaValida)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        'La hora de salida debe ser posterior a la de entrada',
+                        style: TextStyle(color: scheme.error),
+                      ),
+                    ),
+                ],
+              ),
             ),
             actionsAlignment: MainAxisAlignment.center,
             actions: [
@@ -333,21 +372,21 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   backgroundColor: scheme.primary
                 ),
-                onPressed: horaValida
-                  ? null
-                  : () {
-                  // Construimos los Strings "HH:mm:ss"
-                  String fmt(TimeOfDay t) =>
-                    '${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}:00';
-
-                  final editado = Horario(
-                    id: horario.id,
-                    dia: horario.dia,
-                    horaEntrada: fmt(entrada),
-                    horaSalida: fmt(salida),
-                    grupoId: selectedGroup.id!,
-                  );
-                  Navigator.of(dctx).pop(editado);
+                 onPressed: () {
+                  if (_formKey.currentState!.validate() || horaValida) {
+                    if (!_formKey.currentState!.validate()) return;
+                    // Parsea de TimeOfDay a "HH:mm:ss"  
+                    String fmt(TimeOfDay t) =>
+                      '${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}:00';
+                    final h = Horario(
+                      id: horario.id,
+                      grupoId: grupoSeleccionado.id!,
+                      dia: diaSeleccionado!,
+                      horaEntrada: fmt(entrada),
+                      horaSalida: fmt(salida),
+                    );
+                    Navigator.of(dctx).pop(h);
+                  }
                 },
                 child: Text('Actualizar', style: TextStyle(color: scheme.onPrimary)),
               ),
@@ -377,7 +416,7 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
       }
     }
   }
-
+  /// Dialogo para confirmar elimar un horario
   Future<bool?> _mostrarConfirmacion(BuildContext context, Horario horario, ColorScheme scheme) {
     return showDialog<bool>(
       context: context,
@@ -437,6 +476,7 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
     );
   }
 
+  /// Dialogo para crear un dialogo
   Future<void> crearHorarioDialogo() async {
     final scheme = Theme.of(context).colorScheme;
     final _formKey = GlobalKey<FormState>();
@@ -479,7 +519,7 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     DropdownButtonFormField<Grupo>(
-                      decoration: const InputDecoration(labelText: 'Grupo'),
+                      decoration: const InputDecoration(labelText: 'Grupo',border: OutlineInputBorder(),),
                       items: _grupos
                           .map((g) => DropdownMenuItem(value: g, child: Text(g.nombre)))
                           .toList(),
@@ -497,7 +537,7 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<Dia>(
-                      decoration: const InputDecoration(labelText: 'Día'),
+                      decoration: const InputDecoration(labelText: 'Día',border: OutlineInputBorder(),),
                       items: Dia.values
                           .map((dia) => DropdownMenuItem(value: dia, child: Text(dia.name)))
                           .toList(),

@@ -24,13 +24,15 @@ class _JustificarAusenciaScreenState extends State<JustificarAusenciaScreen> {
   final _detallesCtrl = TextEditingController();
   bool _loading = false;
 
+  /// Cuando se cierre se eliminan los datos para no perderlos
   @override
   void dispose() {
     _detallesCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _enviarJustificante() async {
+  /// Crea una ausencia
+  Future<void> _crearAusencia() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
@@ -130,7 +132,7 @@ class _JustificarAusenciaScreenState extends State<JustificarAusenciaScreen> {
               _loading
               ? const Center(child: CircularProgressIndicator())
               : ElevatedButton.icon(
-                onPressed: _enviarJustificante,
+                onPressed: _crearAusencia,
                 icon: Icon(Icons.send,color: scheme.onPrimary), 
                 label: const Text('Generar ausencia'),
                 style: ElevatedButton.styleFrom(

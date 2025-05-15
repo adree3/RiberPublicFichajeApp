@@ -26,6 +26,7 @@ class FichajesScreenState extends State<FichajesScreen> {
 
   int? _idUsuario;
   
+  /// Al iniciar la aplicacion carga los datos
   @override
   void initState() {
     super.initState();
@@ -51,6 +52,7 @@ class FichajesScreenState extends State<FichajesScreen> {
     }
   }
 
+  /// Comprueba si las fechas recibidas son iguales
   bool _mismaFecha(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
  

@@ -1,6 +1,8 @@
 import 'usuario.dart';
 
+/// Modelo Fichaje
 class Fichaje {
+  /// Atributos
   final int? id;
   final DateTime? fechaHoraEntrada;
   final DateTime? fechaHoraSalida;
@@ -8,6 +10,7 @@ class Fichaje {
   final bool nfcUsado;
   final Usuario usuario;
 
+  /// Constructor
   Fichaje({
     this.id,
     this.fechaHoraEntrada,
@@ -17,6 +20,7 @@ class Fichaje {
     required this.usuario,
   });
 
+  /// Convierte el json al modelo Fichaje 
   factory Fichaje.fromJson(Map<String, dynamic> json) {
     final usuarioField = json['usuario'];
     late final Usuario usuario;
@@ -51,6 +55,7 @@ class Fichaje {
     );
   }
 
+  /// Convierte del modelo Fichaje a Json
   Map<String, dynamic> toJson() {
     return {
       'id': id,

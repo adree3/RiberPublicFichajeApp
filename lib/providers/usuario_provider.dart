@@ -9,11 +9,13 @@ class UsuarioProvider with ChangeNotifier {
 
   bool get estaLogueado => _usuario != null;
 
+  /// Añades el usuario logeado
   void setUsuario(Usuario? usuario) {
     _usuario = usuario;
     notifyListeners();
   }
 
+  /// ceirras sesion
   void cerrarSesion() {
     _usuario = null;
     notifyListeners();

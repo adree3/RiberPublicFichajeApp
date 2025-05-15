@@ -16,28 +16,31 @@ class AdminHomeScreen extends StatefulWidget {
 
 class _AdminHomeScreenState extends State<AdminHomeScreen> {
   int _selectedIndex = 0;
+  // se utilizan para poder llamar desde esta clase a los metodos de sus clases
   final _usuariosKey = GlobalKey<AdminUsuariosScreenState>();
   final _ausenciasKey  = GlobalKey<AdminAusenciasScreenState>();
   final _gruposkey  = GlobalKey<AdminGruposScreenState>();
   final _horarioskey  = GlobalKey<AdminHorariosScreenState>();
 
+  /// Nombre e icono de las pantallas a navegar
   static final pantallas = [
+    const NavigationDestination(icon: Icon(Icons.event_busy), label: 'Ausencias'),
     const NavigationDestination(icon: Icon(Icons.person), label: 'Usuarios'),
     const NavigationDestination(icon: Icon(Icons.group), label: 'Grupos'),
     const NavigationDestination(icon: Icon(Icons.schedule), label: 'Horarios'),
-    const NavigationDestination(icon: Icon(Icons.event_busy), label: 'Ausencias'),
   ];
 
   late final List<Widget> _screens;
 
+  /// Al iniciar la pantalla se almacenan la lista de screens a las que se van a acceder
   @override
   void initState() {
     super.initState();
     _screens = [
+      AdminAusenciasScreen(key: _ausenciasKey),
       AdminUsuariosScreen(key: _usuariosKey),
       AdminGruposScreen(key: _gruposkey),
       AdminHorariosScreen(key: _horarioskey,),
-      AdminAusenciasScreen(key: _ausenciasKey),
     ];
   }
 
@@ -52,34 +55,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
+  /// Dependiendo de la pantalla genera un FAB distinto
   Widget? _buildCrear() {
     switch (_selectedIndex) {
-      case 0: // Usuarios
-        return FloatingActionButton.extended(
-          icon: const Icon(Icons.add),
-          label: const Text('Nuevo'),
-          onPressed: () {
-            _usuariosKey.currentState?.crearUsuarioDialogo();
-          },
-        );
-      
-      case 1: // Grupos
-        return FloatingActionButton.extended(
-          icon: const Icon(Icons.add),
-          label: const Text('Nuevo'),
-          onPressed: () {
-            _gruposkey.currentState?.crearGrupoDialogo();
-          },
-        );
-      case 2: // Grupos
-        return FloatingActionButton.extended(
-          icon: const Icon(Icons.add),
-          label: const Text('Nuevo'),
-          onPressed: () {
-            _horarioskey.currentState?.crearHorarioDialogo();
-          },
-        );
-      case 3: // Ausencias
+      case 0: // Ausencias
         return FloatingActionButton.extended(
           icon: const Icon(Icons.refresh),
           label: const Text('Generar'),
@@ -97,6 +76,31 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             }
           },
         );
+      case 1: // Usuarios
+        return FloatingActionButton.extended(
+          icon: const Icon(Icons.add),
+          label: const Text('Nuevo'),
+          onPressed: () {
+            _usuariosKey.currentState?.crearUsuarioDialogo();
+          },
+        );
+      case 2: // Grupos
+        return FloatingActionButton.extended(
+          icon: const Icon(Icons.add),
+          label: const Text('Nuevo'),
+          onPressed: () {
+            _gruposkey.currentState?.crearGrupoDialogo();
+          },
+        );
+      case 3: // Grupos
+        return FloatingActionButton.extended(
+          icon: const Icon(Icons.add),
+          label: const Text('Nuevo'),
+          onPressed: () {
+            _horarioskey.currentState?.crearHorarioDialogo();
+          },
+        );
+      
       default:
         return null;
     }

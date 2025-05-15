@@ -34,6 +34,8 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
   Estado? _estadoSeleccionado;
 
   late Future<List<dynamic>> _futureData;
+
+  bool _mostrarContrasena = true; // Para el ojo
   bool _loading = false;
   bool _checkingEmail = false;
   String? _emailError;
@@ -160,7 +162,6 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Nombre
                 TextFormField(
                   controller: _nombreCtrl,
                   decoration: _inputDecoration('Nombre', Icons.person),
@@ -169,7 +170,6 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
                 ),
                 const SizedBox(height: 12),
 
-                // Apellido1
                 TextFormField(
                   controller: _apellido1Ctrl,
                   decoration: _inputDecoration('Apellido 1', Icons.badge),
@@ -179,7 +179,6 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
                 ),
                 const SizedBox(height: 12),
 
-                // Apellido2
                 TextFormField(
                   controller: _apellido2Ctrl,
                   decoration: _inputDecoration(
@@ -187,7 +186,6 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
                 ),
                 const SizedBox(height: 12),
 
-                // Email con check
                 TextFormField(
                   controller: _emailCtrl,
                   decoration: _inputDecoration('Email', Icons.email).copyWith(
@@ -216,16 +214,41 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
                 ),
                 const SizedBox(height: 12),
 
-                // Contraseña nueva opcional
                 TextFormField(
                   controller: _contraCtrl,
                   decoration: _inputDecoration(
-                      'Nueva contraseña (opcional)', Icons.lock),
-                  obscureText: true,
+                    'Nueva contraseña (opcional)', Icons.lock
+                  ).copyWith(
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _mostrarContrasena
+                          ? Icons.visibility
+                          : Icons.visibility_off
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _mostrarContrasena = !_mostrarContrasena;
+                        });
+                      },
+                    ),
+                  ),
+                  obscureText: _mostrarContrasena,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return null;
+                    if (value.length < 6) {
+                      return 'Mínimo 6 caracteres';
+                    }
+                    if (!RegExp(r'(?=.*[A-Z])').hasMatch(value)) {
+                      return 'Debe incluir al menos una mayúscula';
+                    }
+                    if (!RegExp(r'(?=.*\d)').hasMatch(value)) {
+                      return 'Debe incluir al menos un número';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 12),
 
-                // Rol
                 DropdownButtonFormField<Rol>(
                   value: _rolSeleccionado,
                   decoration:

@@ -43,11 +43,11 @@ class AdminAusenciasScreenState extends State<AdminAusenciasScreen> {
     _cargarDatos();
   }
 
-
+  /// Calcula el color del avatar dividiendo los colores primarios entre el id recibido
   Color _avatarColor(int id) =>
       Colors.primaries[id % Colors.primaries.length];
 
-  // Lista filtrada por texto y estado (agrupando vacio+pendiente)
+  /// Lista filtrada por texto y estado (agrupando vacio y pendiente en el mismo)
   List<Ausencia> get _filtradas {
     return _ausencias.where((a) {
       final usuario = _usuarios.firstWhere((u) => u.id == a.usuario.id, orElse: () => a.usuario);
@@ -86,6 +86,7 @@ class AdminAusenciasScreenState extends State<AdminAusenciasScreen> {
               child: Row(
                 children: [
                   Expanded(
+                    // Filtro de nombre
                     child: TextField(
                       controller: _filtroCtrl,
                       decoration: const InputDecoration(
@@ -98,6 +99,7 @@ class AdminAusenciasScreenState extends State<AdminAusenciasScreen> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
+                    // Desplegable para el filtro estado
                     child: DropdownButtonFormField<EstadoAusencia?>(
                       isExpanded: true,
                       decoration: const InputDecoration(
@@ -138,8 +140,9 @@ class AdminAusenciasScreenState extends State<AdminAusenciasScreen> {
             Expanded(
               child: RefreshIndicator(
                 onRefresh: recargar,
+                // Lista de Ausencias se recarga al bajar
                 child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, kBottomNavigationBarHeight + 16),
                   itemCount: _filtradas.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (_, i) {

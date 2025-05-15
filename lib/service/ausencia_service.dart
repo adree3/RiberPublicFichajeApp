@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:riber_republic_fichaje_app/model/ausencia.dart';
 import 'package:riber_republic_fichaje_app/utils/api_config.dart';
 
+/// Conecta el API de ausencias con la aplicacion de flutter
 class AusenciaService {
   static String get baseUrl => ApiConfig.baseUrl + '/ausencias';
 

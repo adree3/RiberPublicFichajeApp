@@ -1,6 +1,8 @@
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
 
+/// Modelo Ausencia
 class Ausencia {
+  /// Atributos
   int? id;
   DateTime fecha;
   Motivo motivo;
@@ -9,7 +11,7 @@ class Ausencia {
   String? detalles;
   DateTime tiempoRegistrado;
   Usuario usuario;
-
+  /// Constructor
   Ausencia({
     this.id,
     required this.fecha,
@@ -20,7 +22,7 @@ class Ausencia {
     required this.tiempoRegistrado,
     required this.usuario,
   });
-
+  /// Convierte el json al modelo Ausencia 
   factory Ausencia.fromJson(Map<String, dynamic> json) {
     final usuarioField = json['usuario'];
     Usuario usuario;
@@ -59,6 +61,7 @@ class Ausencia {
     );
   }
 
+  /// Convierte del modelo Ausencia a Json
   Map<String, dynamic> toJson() {
     return {
       'id': id,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:riber_republic_fichaje_app/model/grupo.dart';
@@ -24,12 +25,13 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
 
   Grupo? _filtroGrupo;
 
+  /// Al iniciar la pantalla carga los datos 
   @override
   void initState() {
     super.initState();
     _initData = _cargarDatos();
   }
-
+  /// Recibe los datos del Service y los setea
   Future<void> _cargarDatos() async {
     final grupos = await GrupoService().getGrupos();
     final usuarios = await UsuarioService().getUsuariosActivos();
@@ -41,16 +43,21 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
     });
   }
 
-  Future<void> _recargar() async => await _cargarDatos();
+  /// Recarga llamando a cargarDatos
+  Future<void> _recargar() async {
+    await _cargarDatos();
+  }
 
+  /// Calcula el color por el id recibido
   Color _avatarColor(int id) =>
       Colors.primaries[id % Colors.primaries.length];
 
+  /// Filtra los grupos para el dropdownbutton
   List<Grupo> get _gruposFiltrados {
     if (_filtroGrupo == null) return _grupos;
     return _grupos.where((g) => g.id == _filtroGrupo!.id).toList();
   }
-
+  /// Dialogo para exportar los grupos a Excel
   void _mostrarDialogoExportar() {
     Grupo? grupoSeleccionado;
     final scheme = Theme.of(context).colorScheme;
@@ -60,22 +67,46 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx2, setDialog) {
           return AlertDialog(
-            title: const Text('Exportar datos de grupo'),
-            content: DropdownButtonFormField<Grupo?>(
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Elige un grupo',
-                border: OutlineInputBorder(),
-              ),
-              items: [
-                for (final g in _grupos)
-                  DropdownMenuItem(value: g, child: Text(g.nombre)),
+            title: const Text('Exportar grupos'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<Grupo?>(
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Elige un grupo',
+                    border: OutlineInputBorder(),
+                  ),
+                  value: grupoSeleccionado,
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('—')),
+                    ..._grupos.map((g) => DropdownMenuItem(value: g, child: Text(g.nombre))),
+                  ],
+                  onChanged: (g) => setDialog(() => grupoSeleccionado = g),
+                ),
+                 const SizedBox(height: 16),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    icon: Icon(Icons.layers, color: scheme.onPrimary),
+                    label: Text('Exportar todos', style: TextStyle(color: scheme.onPrimary)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: scheme.secondary,
+                      minimumSize: const Size.fromHeight(40),
+                    ),
+                    onPressed: () {
+                      Navigator.of(ctx2).pop();
+                      ExcelExporter.exportarTodosGruposAExcel(
+                        context: context,
+                        grupos: _grupos,
+                        usuarios: _usuarios,
+                        ausencias: _ausencias,
+                      );
+                    },
+                  ),
+                ),
               ],
-              onChanged: (g) {
-                setDialog(() {
-                  grupoSeleccionado = g;
-                });
-              },
             ),
             actions: [
               ElevatedButton(onPressed: (){
@@ -122,6 +153,10 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    // indica si la plataforma en la que se esta mostrando es movil (android-IOS)
+    final esMovil = !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+       defaultTargetPlatform == TargetPlatform.iOS);
     return FutureBuilder<void>(
       future: _initData,
       builder: (context, snapshot) {
@@ -157,26 +192,30 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
                       onChanged: (g) => setState(() => _filtroGrupo = g),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    icon: Icon(Icons.file_download_outlined, color: scheme.onPrimary,),
-                    label: Text('Exportar', style: TextStyle(color: scheme.onPrimary),),
-                    onPressed: () => _mostrarDialogoExportar(),
-                    style: ElevatedButton.styleFrom(
-                      elevation: 2,
-                      backgroundColor: scheme.primary,
-                      minimumSize: const Size(100, 55),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  // solo se muestra el exportar, si no es movil
+                  if (!esMovil)...[
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.file_download_outlined, color: scheme.onPrimary,),
+                      label: Text('Exportar', style: TextStyle(color: scheme.onPrimary),),
+                      onPressed: () => _mostrarDialogoExportar(),
+                      style: ElevatedButton.styleFrom(
+                        elevation: 2,
+                        backgroundColor: scheme.primary,
+                        minimumSize: const Size(100, 55),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
                     ),
-                  ),
+                  ]
                 ],
               ),
             ),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _recargar,
+                // Lista de grupos
                 child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, kBottomNavigationBarHeight + 16),
                   itemCount: _gruposFiltrados.length,
                   itemBuilder: (context, index) {
                     final grupo = _gruposFiltrados[index];
@@ -216,19 +255,20 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
                                 await _EditarGrupoDialogo(grupo);
                               },
                             ),
-                            IconButton(
-                              icon: Icon(Icons.delete, color: scheme.error),
-                              onPressed: () async {
-                                final confirmar = await _mostrarConfirmacion(context, grupo, scheme);
-                                if (confirmar == true) {
-                                  await GrupoService.eliminarGrupo(grupo.id!);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Grupo eliminado')),
-                                  );
-                                  _recargar();
-                                }
-                              },
-                            ),
+                            if (grupo.nombre!= 'Sin Asignar')
+                              IconButton(
+                                icon: Icon(Icons.delete, color: scheme.error),
+                                onPressed: () async {
+                                  final confirmar = await _mostrarConfirmacion(context, grupo, scheme);
+                                  if (confirmar == true) {
+                                    await GrupoService.eliminarGrupo(grupo.id!);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Grupo eliminado')),
+                                    );
+                                    _recargar();
+                                  }
+                                },
+                              ),
                             Icon(
                               estaAbierto ? Icons.expand_less : Icons.expand_more,
                               color: Colors.grey,
@@ -294,6 +334,7 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
     );
   }
 
+  /// Dialogo para confirmar el eliminar un grupo
   Future<bool?> _mostrarConfirmacion(BuildContext context, Grupo grupo, ColorScheme scheme) {
   return showDialog<bool>(
     context: context,
@@ -376,450 +417,450 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
   );
 }
 
-
+  /// Dialogo para editar un grupo
   Future<void> _EditarGrupoDialogo(Grupo grupo) async {
-  final scheme = Theme.of(context).colorScheme;
-  final nombreCtrl = TextEditingController(text: grupo.nombre);
-  final _formKey   = GlobalKey<FormState>();
+    final scheme = Theme.of(context).colorScheme;
+    final nombreCtrl = TextEditingController(text: grupo.nombre);
+    final _formKey   = GlobalKey<FormState>();
 
-  final buscarCtrl   = TextEditingController();
-  final buscarFocus  = FocusNode();
-  final suggestionsCtrl = SuggestionsController<Usuario>();
+    final buscarCtrl   = TextEditingController();
+    final buscarFocus  = FocusNode();
+    final suggestionsCtrl = SuggestionsController<Usuario>();
 
-  // Usuarios ya en el grupo
-  List<Usuario> usuarios = _usuarios.where((u) => u.grupoId == grupo.id).toList();
+    List<Usuario> usuarios = _usuarios.where((u) => u.grupoId == grupo.id).toList();
 
-  await showDialog(
-    context: context,
-    builder: (ctx) => StatefulBuilder(
-      builder: (ctx, setDialog) {
-        return AlertDialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 50.0, vertical: 100),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          titlePadding: EdgeInsets.zero,
-          title: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: scheme.primary,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialog) {
+          return AlertDialog(
+            insetPadding: const EdgeInsets.symmetric(horizontal: 50.0, vertical: 100),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            titlePadding: EdgeInsets.zero,
+            title: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                color: scheme.primary,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              ),
+              child: Center(
+                child: Text('Editar Grupo',
+                    style: TextStyle(color: scheme.onPrimary, fontWeight: FontWeight.bold)),
+              ),
             ),
-            child: Center(
-              child: Text('Editar Grupo',
-                  style: TextStyle(color: scheme.onPrimary, fontWeight: FontWeight.bold)),
-            ),
-          ),
-          content: SizedBox(
-            width: 320,
-            height: 350,
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  // Nombre del grupo
-                  TextFormField(
-                    controller: nombreCtrl,
-                    decoration: InputDecoration(
-                      labelText: 'Nombre del grupo',
-                      filled: true,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            content: SizedBox(
+              width: 320,
+              height: 350,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    // Nombre del grupo
+                    TextFormField(
+                      controller: nombreCtrl,
+                      enabled: grupo.nombre != 'Sin Asignar',
+                      decoration: InputDecoration(
+                        labelText: 'Nombre del grupo',
+                        filled: true,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      validator: (value) {
+                        final nuevo = value?.trim() ?? '';
+                        if (nuevo.isEmpty) {
+                          return 'El nombre no puede estar vacío';
+                        }
+                        final duplicado = _grupos.any((g) =>
+                          g.nombre.toLowerCase() == nuevo.toLowerCase() && g.id != grupo.id
+                        );
+                        if (duplicado) {
+                          return 'Ya existe un grupo con ese nombre';
+                        }
+                        return null;
+                      },
                     ),
-                    validator: (value) {
-                      final nuevo = value?.trim() ?? '';
-                      if (nuevo.isEmpty) {
-                        return 'El nombre no puede estar vacío';
-                      }
-                      final duplicado = _grupos.any((g) =>
-                        g.nombre.toLowerCase() == nuevo.toLowerCase() && g.id != grupo.id
-                      );
-                      if (duplicado) {
-                        return 'Ya existe un grupo con ese nombre';
-                      }
-                      return null;
-                    },
-                  ),
 
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                  // Campo TypeAhead para añadir usuarios
-                  TypeAheadField<Usuario>(
-                    suggestionsController: suggestionsCtrl,
-                    controller: buscarCtrl,
-                    focusNode: buscarFocus,
-                    builder: (context, textCtrl, focusNode) {
-                      return TextField(
-                        controller: textCtrl,
-                        focusNode: focusNode,
-                        decoration: InputDecoration(
-                          labelText: 'Añadir usuario',
-                          prefixIcon: Icon(Icons.search, color: scheme.primary),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                        onTap: () => suggestionsCtrl.open(),
-                      );
-                    },
-                    suggestionsCallback: (input) {
-                      final q = input.toLowerCase();
-                      return _usuarios.where((u) =>
-                        !usuarios.any((m) => m.id == u.id) &&
-                        u.email.toLowerCase().contains(q)
-                      ).toList();
-                    },
-                    itemBuilder: (ctx, usuario) {
-                      final nombreGrupo = _grupos
-                          .firstWhere((g) => g.id == usuario.grupoId)
-                          .nombre;
-                      return ListTile(
-                        title: Text(usuario.email),
-                        subtitle: Text(nombreGrupo,
-                          style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12)),
-                      );
-                    },
-                    onSelected: (usuario) {
-                       setDialog(() {
-                        usuarios.add(usuario);
-                        buscarCtrl.clear();
-                      });
-                      suggestionsCtrl.close(retainFocus: true);
-                      suggestionsCtrl.open(gainFocus: false);
-                      suggestionsCtrl.refresh();
-                    },
-                    emptyBuilder: (_) => const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text('No se encontraron alumnos'),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Usuarios actuales
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('Usuario actuales',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: scheme.primary)),
-                  ),
-                  const SizedBox(height: 8),
-
-                  Expanded(
-                    child: ListView.separated(
-                      itemCount: usuarios.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (ctx, i) {
-                        final usuario = usuarios[i];
+                    // TypeAhead (un textfield con recomendaciones de usuarios)
+                    TypeAheadField<Usuario>(
+                      suggestionsController: suggestionsCtrl,
+                      controller: buscarCtrl,
+                      focusNode: buscarFocus,
+                      builder: (context, textCtrl, focusNode) {
+                        return TextField(
+                          controller: textCtrl,
+                          focusNode: focusNode,
+                          decoration: InputDecoration(
+                            labelText: 'Añadir usuario',
+                            prefixIcon: Icon(Icons.search, color: scheme.primary),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          onTap: () => suggestionsCtrl.open(),
+                        );
+                      },
+                      // aqui lo hace
+                      suggestionsCallback: (input) {
+                        final q = input.toLowerCase();
+                        return _usuarios.where((u) =>
+                          !usuarios.any((m) => m.id == u.id) &&
+                          u.email.toLowerCase().contains(q)
+                        ).toList();
+                      },
+                      itemBuilder: (ctx, usuario) {
+                        final nombreGrupo = _grupos
+                            .firstWhere((g) => g.id == usuario.grupoId)
+                            .nombre;
                         return ListTile(
                           title: Text(usuario.email),
-                          trailing: IconButton(
-                            icon:
-                                Icon(Icons.remove_circle, color: scheme.error),
-                            onPressed: () {
-                              setDialog(() {
-                                usuarios.removeAt(i);
-                              });
-                              if (buscarFocus.hasFocus) {
-                                suggestionsCtrl.close(retainFocus: true);
-                                suggestionsCtrl.open(gainFocus: false);
-                                suggestionsCtrl.refresh();
+                          subtitle: Text(nombreGrupo,
+                            style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12)),
+                        );
+                      },
+                      onSelected: (usuario) {
+                        setDialog(() {
+                          usuarios.add(usuario);
+                          buscarCtrl.clear();
+                        });
+                        suggestionsCtrl.close(retainFocus: true);
+                        suggestionsCtrl.open(gainFocus: false);
+                        suggestionsCtrl.refresh();
+                      },
+                      emptyBuilder: (_) => const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text('No se encontraron alumnos'),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('Usuario actuales',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: scheme.primary)),
+                    ),
+                    const SizedBox(height: 8),
+
+                    Expanded(
+                      // Lista de ususarios de este grupo
+                      child: ListView.separated(
+                        itemCount: usuarios.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (ctx, i) {
+                          final usuario = usuarios[i];
+                          return ListTile(
+                            title: Text(usuario.email),
+                            trailing: IconButton(
+                              icon:
+                                  Icon(Icons.remove_circle, color: scheme.error),
+                              onPressed: () {
+                                setDialog(() {
+                                  usuarios.removeAt(i);
+                                });
+                                if (buscarFocus.hasFocus) {
+                                  suggestionsCtrl.close(retainFocus: true);
+                                  suggestionsCtrl.open(gainFocus: false);
+                                  suggestionsCtrl.refresh();
+                                }
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.of(ctx).pop(),
+                            style: ElevatedButton.styleFrom(
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: Text('Cancelar',
+                                style: TextStyle(
+                                    color: scheme.error,
+                                    fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              elevation: 2,
+                              backgroundColor: scheme.primary,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: Text('Actualizar',
+                                style: TextStyle(
+                                    color: scheme.onPrimary,
+                                    fontWeight: FontWeight.bold)),
+                            onPressed: () async {
+                              if (!_formKey.currentState!.validate()) return;
+                              final nuevoNombre = nombreCtrl.text.trim();
+                              final usuariosIds =
+                                  usuarios.map((u) => u.id).toList();
+                              try {
+                                await GrupoService.actualizarGrupo(
+                                    id: grupo.id!,
+                                    nombre: nuevoNombre,
+                                    usuariosIds: usuariosIds);
+                                Navigator.of(ctx).pop();
+                                await _recargar();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Grupo actualizado')),
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content:
+                                          Text('Error al actualizar: $e')),
+                                );
                               }
                             },
                           ),
+                        )
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Dialogo para crear un grupo
+  Future<void> crearGrupoDialogo() async {
+    final scheme = Theme.of(context).colorScheme;
+    final nombreCtrl = TextEditingController();
+    final buscarCtrl = TextEditingController();
+    final _formKey = GlobalKey<FormState>();
+    final buscarFocus = FocusNode();
+    final suggestionsCtrl = SuggestionsController<Usuario>();
+    List<Usuario> usuarios = [];
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialog) {
+          return AlertDialog(
+            insetPadding: const EdgeInsets.symmetric(horizontal: 50, vertical: 100),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            titlePadding: EdgeInsets.zero,
+            title: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                color: scheme.primary,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              ),
+              child: Center(
+                child: Text(
+                  'Crear Grupo',
+                  style: TextStyle(color: scheme.onPrimary, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            content: SizedBox(
+              width: 320,
+              height: 350,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: nombreCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'Nombre del grupo',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      validator: (value) {
+                        final nuevo = value?.trim() ?? '';
+                        if (nuevo.isEmpty) {
+                          return 'El nombre no puede estar vacío';
+                        }
+                        final duplicado = _grupos.any((g) =>
+                          g.nombre.toLowerCase() == nuevo.toLowerCase()
                         );
+                        if (duplicado) {
+                          return 'Ya existe un grupo con ese nombre';
+                        }
+                        return null;
                       },
                     ),
-                  ),
 
-                  const SizedBox(height: 16),
-
-                  // Botones Cancelar y Actualizar
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.of(ctx).pop(),
-                          style: ElevatedButton.styleFrom(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
+                    const SizedBox(height: 16),
+                    // El mismo que el de editar
+                    TypeAheadField<Usuario>(
+                      suggestionsController: suggestionsCtrl,
+                      controller: buscarCtrl,
+                      focusNode: buscarFocus,
+                      builder: (context, textCtrl, focusNode) {
+                        return TextField(
+                          controller: textCtrl,
+                          focusNode: focusNode,
+                          decoration: InputDecoration(
+                            labelText: 'Añadir usuario',
+                            prefixIcon: Icon(Icons.search, color: scheme.primary),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                           ),
-                          child: Text('Cancelar',
-                              style: TextStyle(
-                                  color: scheme.error,
-                                  fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            elevation: 2,
-                            backgroundColor: scheme.primary,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: Text('Actualizar',
-                              style: TextStyle(
-                                  color: scheme.onPrimary,
-                                  fontWeight: FontWeight.bold)),
-                          onPressed: () async {
-                            if (!_formKey.currentState!.validate()) return;
-                            final nuevoNombre = nombreCtrl.text.trim();
-                            final usuariosIds =
-                                usuarios.map((u) => u.id).toList();
-                            try {
-                              await GrupoService.actualizarGrupo(
-                                  id: grupo.id!,
-                                  nombre: nuevoNombre,
-                                  usuariosIds: usuariosIds);
-                              Navigator.of(ctx).pop();
-                              await _recargar();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Grupo actualizado')),
-                              );
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content:
-                                        Text('Error al actualizar: $e')),
-                              );
-                            }
-                          },
-                        ),
-                      )
-                    ],
-                  )
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    ),
-  );
-}
-
-  Future<void> crearGrupoDialogo() async {
-  final scheme      = Theme.of(context).colorScheme;
-  final nombreCtrl  = TextEditingController();
-  final buscarCtrl  = TextEditingController();
-  final _formKey    = GlobalKey<FormState>();
-  final buscarFocus = FocusNode();
-  final suggestionsCtrl = SuggestionsController<Usuario>();
-  List<Usuario> usuarios = [];
-
-  await showDialog(
-    context: context,
-    builder: (ctx) => StatefulBuilder(
-      builder: (ctx, setDialog) {
-        return AlertDialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 50, vertical: 100),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          titlePadding: EdgeInsets.zero,
-          title: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: scheme.primary,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            ),
-            child: Center(
-              child: Text(
-                'Crear Grupo',
-                style: TextStyle(color: scheme.onPrimary, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-          content: SizedBox(
-            width: 320,
-            height: 350,
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: nombreCtrl,
-                    decoration: InputDecoration(
-                      labelText: 'Nombre del grupo',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    validator: (value) {
-                      final nuevo = value?.trim() ?? '';
-                      if (nuevo.isEmpty) {
-                        return 'El nombre no puede estar vacío';
-                      }
-                      final duplicado = _grupos.any((g) =>
-                        g.nombre.toLowerCase() == nuevo.toLowerCase()
-                      );
-                      if (duplicado) {
-                        return 'Ya existe un grupo con ese nombre';
-                      }
-                      return null;
-                    },
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  TypeAheadField<Usuario>(
-                    suggestionsController: suggestionsCtrl,
-                    controller: buscarCtrl,
-                    focusNode: buscarFocus,
-                    builder: (context, textCtrl, focusNode) {
-                      return TextField(
-                        controller: textCtrl,
-                        focusNode: focusNode,
-                        decoration: InputDecoration(
-                          labelText: 'Añadir usuario',
-                          prefixIcon: Icon(Icons.search, color: scheme.primary),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                        onTap: () => suggestionsCtrl.open(),
-                      );
-                    },
-                    suggestionsCallback: (input) {
-                      final q = input.toLowerCase();
-                      return _usuarios.where((u) =>
-                        !usuarios.any((m) => m.id == u.id) &&
-                        u.email.toLowerCase().contains(q)
-                      ).toList();
-                    },
-                    itemBuilder: (ctx, usuario) {
-                      final nombreGrupo = _grupos
-                          .firstWhere((g) => g.id == usuario.grupoId)
-                          .nombre;
-                      return ListTile(
-                        title: Text(usuario.email),
-                        subtitle: Text(nombreGrupo,
-                          style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12)),
-                      );
-                    },
-                    onSelected: (usuario) {
-                       setDialog(() {
-                        usuarios.add(usuario);
-                        buscarCtrl.clear();
-                      });
-                      suggestionsCtrl.close(retainFocus: true);
-                      suggestionsCtrl.open(gainFocus: false);
-                      suggestionsCtrl.refresh();
-                    },
-                    emptyBuilder: (_) => const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text('No se encontraron alumnos'),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Usuarios seleccionados',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: scheme.primary,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: ListView.separated(
-                      itemCount: usuarios.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (ctx, i) {
-                        final usuario = usuarios[i];
+                          onTap: () => suggestionsCtrl.open(),
+                        );
+                      },
+                      suggestionsCallback: (input) {
+                        final q = input.toLowerCase();
+                        return _usuarios.where((u) =>
+                          !usuarios.any((m) => m.id == u.id) &&
+                          u.email.toLowerCase().contains(q)
+                        ).toList();
+                      },
+                      itemBuilder: (ctx, usuario) {
+                        final nombreGrupo = _grupos
+                            .firstWhere((g) => g.id == usuario.grupoId)
+                            .nombre;
                         return ListTile(
                           title: Text(usuario.email),
-                          trailing: IconButton(
-                            icon: Icon(Icons.remove_circle, color: scheme.error),
-                            onPressed: () {
-                              setDialog(() {
-                                usuarios.removeAt(i);
-                                if (buscarFocus.hasFocus) {
-                                  suggestionsCtrl.close();
-                                  suggestionsCtrl.refresh();
-                                  suggestionsCtrl.open();
-                                }
-                              });
-                            }
-                          )
+                          subtitle: Text(nombreGrupo,
+                            style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12)),
                         );
                       },
+                      onSelected: (usuario) {
+                        setDialog(() {
+                          usuarios.add(usuario);
+                          buscarCtrl.clear();
+                        });
+                        suggestionsCtrl.close(retainFocus: true);
+                        suggestionsCtrl.open(gainFocus: false);
+                        suggestionsCtrl.refresh();
+                      },
+                      emptyBuilder: (_) => const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text('No se encontraron alumnos'),
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 24),
 
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.of(ctx).pop(),
-                          style: ElevatedButton.styleFrom(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Usuarios seleccionados',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: scheme.primary,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: ListView.separated(
+                        itemCount: usuarios.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (ctx, i) {
+                          final usuario = usuarios[i];
+                          return ListTile(
+                            title: Text(usuario.email),
+                            trailing: IconButton(
+                              icon: Icon(Icons.remove_circle, color: scheme.error),
+                              onPressed: () {
+                                setDialog(() {
+                                  usuarios.removeAt(i);
+                                  if (buscarFocus.hasFocus) {
+                                    suggestionsCtrl.close();
+                                    suggestionsCtrl.refresh();
+                                    suggestionsCtrl.open();
+                                  }
+                                });
+                              }
+                            )
+                          );
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.of(ctx).pop(),
+                            style: ElevatedButton.styleFrom(
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            'Cancelar',
-                            style: TextStyle(
-                              color: scheme.error,
-                              fontWeight: FontWeight.bold,
+                            child: Text(
+                              'Cancelar',
+                              style: TextStyle(
+                                color: scheme.error,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            if (!_formKey.currentState!.validate()) return;
-                            final nombre     = nombreCtrl.text.trim();
-                            final usuariosIds = usuarios.map((u) => u.id).toList();
-                            try {
-                              await GrupoService.crearGrupo(
-                                nombre: nombre,
-                                usuariosIds: usuariosIds,
-                              );
-                              Navigator.of(ctx).pop();
-                              await _recargar();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Grupo creado')),
-                              );
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Error al crear: $e')),
-                              );
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            elevation: 2,
-                            backgroundColor: scheme.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              if (!_formKey.currentState!.validate()) return;
+                              final nombre     = nombreCtrl.text.trim();
+                              final usuariosIds = usuarios.map((u) => u.id).toList();
+                              try {
+                                await GrupoService.crearGrupo(
+                                  nombre: nombre,
+                                  usuariosIds: usuariosIds,
+                                );
+                                Navigator.of(ctx).pop();
+                                await _recargar();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Grupo creado')),
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error al crear: $e')),
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              elevation: 2,
+                              backgroundColor: scheme.primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            'Crear',
-                            style: TextStyle(
-                              color: scheme.onPrimary,
-                              fontWeight: FontWeight.bold,
+                            child: Text(
+                              'Crear',
+                              style: TextStyle(
+                                color: scheme.onPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
-    ),
-  );
-}
-
+          );
+        },
+      ),
+    );
+  }
 }

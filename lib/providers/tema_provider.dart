@@ -12,6 +12,7 @@ class ThemeProvider extends ChangeNotifier {
 
   bool get esOscuro => _mode == ThemeMode.dark;
 
+  /// Al llamarlo cambia de oscuro a claro y al reves
   Future<void> toggle() async {
     _mode = esOscuro ? ThemeMode.light : ThemeMode.dark;
     notifyListeners();
@@ -19,6 +20,7 @@ class ThemeProvider extends ChangeNotifier {
     await prefs.setBool('darkMode', esOscuro);
   }
 
+  /// Carga las preferencias al sharedPreferences y notifica
   Future<void> _cargarPreferencias() async {
     final preferencia = await SharedPreferences.getInstance();
     final oscuro = preferencia.getBool('darkMode') ?? false;

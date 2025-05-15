@@ -36,11 +36,11 @@ class UsuarioService {
   /// Obtiene los horarios de hoy de un usuario
   /// GET /usuarios/{idUsuario}/horarioHoy
   static Future<HorarioHoy> getHorarioDeHoy(int idUsuario) async {
-    final uri = Uri.parse('$baseUrl/$idUsuario/horarioHoy');
-    final response = await http.get(uri);
+    final response = await http.get(Uri.parse('$baseUrl/$idUsuario/horarioHoy'));
 
     if (response.statusCode == 200) {
-      final Map<String, dynamic> data = json.decode(response.body);
+      final utf8Body = utf8.decode(response.bodyBytes);
+      final Map<String, dynamic> data = json.decode(utf8Body);
       return HorarioHoy.fromJson(data);
     } else {
       throw Exception('Error al obtener el horario de hoy');
@@ -52,7 +52,8 @@ class UsuarioService {
   Future<bool> emailEnUso(String email) async {
     final response = await http.get(Uri.parse('$baseUrl/existe?email=$email'));
     if (response.statusCode == 200) {
-      return jsonDecode(response.body) as bool;
+      final utf8Body = utf8.decode(response.bodyBytes);
+      return jsonDecode(utf8Body) as bool;
     } else {
       throw Exception('Error comprobando email (${response.statusCode})');
     }
@@ -99,7 +100,8 @@ class UsuarioService {
       body: jsonEncode(usuarioEditado),
     );
     if (response.statusCode == 200) {
-      return Usuario.fromJson(jsonDecode(response.body));
+      final utf8Body = utf8.decode(response.bodyBytes);
+      return Usuario.fromJson(jsonDecode(utf8Body));
     } else {
       throw Exception(
         'Error al actualizar usuario (${response.statusCode}): ${response.body}',

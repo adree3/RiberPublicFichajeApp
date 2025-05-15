@@ -16,7 +16,9 @@ class _CambiarContrasenaScreenState extends State<CambiarContrasenaScreen> {
   final _nuevaContrasena = TextEditingController();
   final _confimarContrasena = TextEditingController();
   bool _loading = false;
-
+  bool _obscureActual = true;
+  bool _obscureNueva = true;
+  bool _obscureConfirmar = true;
 
   /// metodo para cuando se vaya a "destruir" el widget no se quede informacion flotando en la nada.
   @override
@@ -71,16 +73,23 @@ class _CambiarContrasenaScreenState extends State<CambiarContrasenaScreen> {
         padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: Column(
             children: [
               TextFormField(
                 controller: _contrasenaActual,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Contraseña actual',
-                  prefixIcon: Icon(Icons.lock_outline),
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureActual ? Icons.visibility_off : Icons.visibility,
+                    ),
+                    onPressed: () => setState(() => _obscureActual = !_obscureActual),
+                  ),
                 ),
-                obscureText: true,
+                obscureText: _obscureActual,
                 validator: (value) {
                   if(value == null || value.isEmpty){
                     return 'Introduce la contraseña actual';
@@ -91,29 +100,49 @@ class _CambiarContrasenaScreenState extends State<CambiarContrasenaScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nuevaContrasena,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Nueva contraseña',
-                  prefixIcon: Icon(Icons.vpn_key),
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.vpn_key),
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureNueva ? Icons.visibility_off : Icons.visibility,
+                    ),
+                    onPressed: () => setState(() => _obscureNueva = !_obscureNueva),
+                  ),
                 ),
-                obscureText: true,
+                obscureText: _obscureNueva,
                 validator: (value) {
-                  if(value == null || value.length < 6){
-                    return 'Debe contener minimo 6 caracteres';
-                  }else{
-                    return null;
+                  if (value == null || value.isEmpty) {
+                    return 'Introduce la nueva contraseña';
                   }
+                  if (value.length < 6) {
+                    return 'Mínimo 6 caracteres';
+                  }
+                  if (!RegExp(r'(?=.*[A-Z])').hasMatch(value)) {
+                    return 'Debe incluir al menos una mayúscula';
+                  }
+                  if (!RegExp(r'(?=.*\d)').hasMatch(value)) {
+                    return 'Debe incluir al menos un número';
+                  }
+                  return null;
                 }
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _confimarContrasena,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Confirma la nueva contraseña',
-                  prefixIcon: Icon(Icons.check),
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.check),
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureConfirmar ? Icons.visibility_off : Icons.visibility,
+                    ),
+                    onPressed: () => setState(() => _obscureConfirmar = !_obscureConfirmar),
+                  ),
                 ),
-                obscureText: true,
+                obscureText: _obscureConfirmar,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Confirma la contraseña';

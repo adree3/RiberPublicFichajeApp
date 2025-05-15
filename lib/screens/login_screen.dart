@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
@@ -22,14 +20,18 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
   bool _guardarSesion = false;
+  bool _mostrarContrasena = true;
 
+  /// Hace una peticion al service para comprobar el usuario y contraseña
   void _login(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _loading = true;
     });
-    final usuario = await AuthService.login(_emailController.text,_passController.text);
+
+    final email = '${_emailController.text.trim()}@educa.jcyl.es';
+    final usuario = await AuthService.login(email,_passController.text);
 
     setState(() {
       _loading = false;
@@ -63,7 +65,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: scheme.background,
       body: Center(
@@ -90,38 +91,44 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          controller: _emailController,
-                          decoration: InputDecoration(
-                            labelText: "Correo electrónico",
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.email, color: scheme.primary),
-                          ),
-                          style: textTheme.bodyMedium,
-                          validator: (value) {
-                            if (value!.isEmpty){
-                              return "Introduce tu email";
-                            }else{
-                              return null;
-                            }
-                          }
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),                  child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: InputDecoration(
+                          labelText: "Correo electrónico",
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.email, color: scheme.primary),
+                          suffixText: '@educa.jcyl.es',
                         ),
-                        const SizedBox(height: 20),
-
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value!.isEmpty){
+                            return "Introduce tu usuario sin el @";
+                          }else{
+                            return null;
+                          }
+                        }
+                      ),
+                      const SizedBox(height: 20),
+                  
                         TextFormField(
                           controller: _passController,
                           decoration: InputDecoration(
                             labelText: "Contraseña",
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.lock, color: scheme.primary),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _mostrarContrasena ? Icons.visibility_off : Icons.visibility,
+                                color: scheme.onSurface.withOpacity(0.6),
+                              ),
+                              onPressed: () => setState(() => _mostrarContrasena = !_mostrarContrasena),
+                            ),
                           ),
-                          obscureText: true,
-                          style: textTheme.bodyMedium,
+                          obscureText: _mostrarContrasena,
                           validator: (value){
                             if (value!.isEmpty){
                               return "Introduce tu contraseña";
@@ -131,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           } 
                         ),
                         const SizedBox(height: 20),
-
+                  
                         Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: Row(
@@ -146,12 +153,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                   });
                                 },
                               ),
-                              Text("Guardar sesión", style: textTheme.bodyMedium),
+                              Text("Guardar sesión"),
                             ],
                           ),
                         ),
-                        
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 20),
                         _loading
                         ? CircularProgressIndicator(color: scheme.primary)
                         : SizedBox(
@@ -166,8 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             child: Text( "INICIAR SESIÓN",
-                              style: textTheme.labelLarge!
-                                  .copyWith(color: scheme.onPrimary),
+                              style: TextStyle(color: scheme.onPrimary)
                             ),
                           ),
                         )

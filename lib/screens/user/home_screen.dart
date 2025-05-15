@@ -43,9 +43,11 @@ class _HomeScreenState extends State<HomeScreen> {
       _fichajesKey.currentState?.recargarFichajes();
     }
   }
+  /// Calcula el color por el id recibio
   Color _avatarColor(int id) =>
       Colors.primaries[id % Colors.primaries.length];
-  /// appbar para las pantallas, si es la 2 va sin icono
+
+  /// Appbar para las pantallas, si es la 2 va sin icono
   PreferredSizeWidget? _buildAppBar() {
     final scheme = Theme.of(context).colorScheme;
 
@@ -127,7 +129,6 @@ class HomeContent extends StatefulWidget {
 }
 
 class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClientMixin<HomeContent>{
-
   // es necesario por el AutomaticKeepAliveClientMixin para que el dispose, no elimine el state aunque no este visible
   @override
   bool get wantKeepAlive => true;
@@ -148,13 +149,10 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
     super.initState();
     _initFuture = _cargaInicial();
   }
-
+  /// Recibe del service los datos de horarios y fichajes
   Future<void> _cargaInicial() async {
-    // usuario de la sesión actual
     final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario!;
-    // horario de hoy para el usuario
     final horario = await UsuarioService.getHorarioDeHoy(usuario.id);
-    // fichajes realizados por el usuario
     final fichajes = await FichajeService.getFichajesPorUsuario(usuario.id);
 
     // filtra los fichajes para quedarme con los fichajes de hoy
@@ -164,7 +162,6 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
     _fichajeEnCurso = _fichajesDeHoy.firstWhereOrNull((f) => f.fechaHoraSalida == null);
     // si hay un fichaje en curso sera true (para el boton rojo o azul)
     _trabajando   = _fichajeEnCurso != null;
-    // guardo el horario en otra variable privada
     _horarioHoy   = horario;
 
     // calcula el tiempo trabajado contando solo los fichajes con hora de salida
@@ -177,7 +174,7 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
     }
   }
 
-  // inicia el timer
+  /// inicia el timer
   void _iniciarTimer() {
   _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
     if (!mounted) {
@@ -189,17 +186,18 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
   });
 }
 
-  // cuando no se este visualizando la pantalla, para el timer
+  /// cuando no se este visualizando la pantalla, para el timer
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
   }
 
-  void _mostrarOpcionesFichaje() {
+  /// ModalBottom para selecionar si quieres fichar con o sin nfc
+  void _mostrarOpcionesFichaje(ColorScheme scheme) {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
       builder: (_) {
@@ -211,7 +209,7 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
               Text('¿Cómo quieres fichar?' ),
               const SizedBox(height: 12),
               ListTile(
-                leading: Icon(Icons.nfc, color: Theme.of(context).primaryColor),
+                leading: Icon(Icons.nfc, color: scheme.primary),
                 title: const Text('Con NFC'),
                 onTap: () {
                   Navigator.pop(context);
@@ -225,12 +223,87 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
                 },
               ),
               ListTile(
-                leading: Icon(Icons.fingerprint, color: Theme.of(context).primaryColor),
+                leading: Icon(Icons.dangerous_outlined, color: scheme.primary),
                 title: const Text('Sin NFC'),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  // Llamada directa:
-                  _onFichajeCompletado(_trabajando, false);
+                  final confirmar = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      titlePadding: EdgeInsets.zero,
+                      title: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          color: scheme.primary,
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                        ),
+                        child: Center(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.exit_to_app, color: scheme.onPrimary),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Fichar sin NFC',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: scheme.onPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      content: const Text('Se generara una ausencia al fichar sin NFC', textAlign: TextAlign.center),
+                      actions: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () => Navigator.of(ctx).pop(false),
+                                style: ElevatedButton.styleFrom(
+                                  elevation: 2,
+                                  backgroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  minimumSize: const Size.fromHeight(40),
+                                ),
+                                child: Text(
+                                  'Cancelar',
+                                  style: TextStyle(
+                                    color: scheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () => Navigator.of(ctx).pop(true),
+                                style: ElevatedButton.styleFrom(
+                                  elevation: 2,
+                                  backgroundColor: scheme.error,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  minimumSize: const Size.fromHeight(40),
+                                ),
+                                child: Text(
+                                  'Confirmar',
+                                  style: TextStyle(
+                                    color: scheme.onPrimary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmar == true) {
+                    _onFichajeCompletado(_trabajando, false);
+                  }
                 },
               ),
             ],
@@ -238,37 +311,6 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
         );
       },
     );
-  }
-
-
-  Future<void> _onBotonPulsado() async {
-    // obtengo el usuario que ha iniciado sesi
-    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario!;
-
-    if (!_trabajando) {
-      // Abre el fichaje de hoy
-      final fichaje = await FichajeService.abrirFichaje(usuario.id, nfcUsado: true, ubicacion: "Oficina Principal");
-      setState(() {
-        _fichajeEnCurso = fichaje;
-        _trabajando = true;
-        _inicioActual = fichaje.fechaHoraEntrada;
-      });
-      _iniciarTimer();
-    } else {
-      _timer?.cancel();
-      // Cierra el fichaje de hoy
-      final fichajeCerrado = await FichajeService.cerrarFichaje(idUsuario:  usuario.id, nfcUsado: false);
-      setState(() {
-        _trabajando   = false;
-        // Suma al tiempo total lo de este fichaje
-        if (_inicioActual != null && fichajeCerrado.fechaHoraSalida != null) {
-          _acumulado += fichajeCerrado.fechaHoraSalida!
-              .difference(_inicioActual!);
-        }
-        _fichajeEnCurso = null;
-        _inicioActual   = null;
-      });
-    }
   }
 
   @override
@@ -318,12 +360,9 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
             ),
           );
         }
-
-        // 3) Si carga bien pero _horarioHoy es null (por seguridad)
         if (_horarioHoy == null) {
           return const Center(child: Text("Error cargando horario"));
         }
-        // obtengo el momento
         final ahora = DateTime.now();
         // suma todas las sesiones cerradas de hoy, si estoy en jornada calcula la diferencia que llevo en jornada
         final total = _acumulado +
@@ -333,22 +372,19 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
 
         return SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
             child: Column(
               children: [
                 CircleAvatar(
-                  radius: 100,
+                  radius: 110,
                   backgroundColor: scheme.surface,
                   backgroundImage: const AssetImage('assets/images/logo.png'),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 5),
                 Text("¡Hola ${usuario.nombre} ${usuario.apellido1} ${usuario.apellido2??""}!",
-                  style: Theme.of(context)
-                    .textTheme
-                    .headlineMedium!
-                    .copyWith(color: scheme.primary),
+                  style: TextStyle(color: scheme.primary, fontSize: 30), textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 30),
                 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -398,11 +434,11 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
                     ),
                   ],
                 ),
-                const SizedBox(height: 70),
+                const SizedBox(height: 50),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _mostrarOpcionesFichaje,
+                    onPressed:() => _mostrarOpcionesFichaje(scheme),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 25),
                       shape: RoundedRectangleBorder(
@@ -425,7 +461,7 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
     );
   }
 
-  // formatea un duration al formato (HH:MM:SS) siempre con dos digitos
+  // formatea un duration al formato (HH:MM:SS) con dos digitos
   String _formateaDuracion(Duration duracion) {
     String two(int n) => n.toString().padLeft(2, '0');
     return "${two(duracion.inHours)}:"
@@ -433,6 +469,7 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
            "${two(duracion.inSeconds.remainder(60))}";
   }
 
+  /// Crea el fichaje
   Future<void> _onFichajeCompletado(bool fichajeAbierto, bool nfcUsado) async {
     final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario!;
     if (!fichajeAbierto) {

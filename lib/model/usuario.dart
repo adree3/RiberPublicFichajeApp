@@ -1,4 +1,6 @@
+/// Modelo Usuario
 class Usuario {
+  /// Atributos
   final int id;
   final String nombre;
   final String apellido1;
@@ -9,6 +11,7 @@ class Usuario {
   final Estado estado;
   final int? grupoId;
 
+  /// Constructor
   Usuario({
     required this.id,
     required this.nombre,
@@ -21,6 +24,7 @@ class Usuario {
     this.grupoId,
   });
 
+  /// Convierte el json al modelo Usuario 
   factory Usuario.fromJson(Map<String, dynamic> json) {
     final grupoField = json['grupo'];
     int? grupoId;
@@ -43,6 +47,7 @@ class Usuario {
     );
   }
 
+  /// Convierte del modelo Usuario a Json
   Map<String, dynamic> toJson() {
     return {
       'id': id,

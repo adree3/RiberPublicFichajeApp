@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
 import 'package:riber_republic_fichaje_app/providers/tema_provider.dart';
@@ -87,8 +88,16 @@ class MyApp extends StatelessWidget {
         '/': (_) => const LoginScreen(),
         '/home': (_) => const HomeScreen(),
         '/admin_home': (_) => const AdminHomeScreen(),
-
       },
+      locale: const Locale('es', 'ES'),
+      supportedLocales: const [
+        Locale('es', 'ES'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
     );
   }
 }

@@ -13,18 +13,21 @@ class PerfilScreen extends StatefulWidget {
 }
 
 class _PerfilScreenState extends State<PerfilScreen> {
+  // HAY COSAS QUE TENGO COMENTADAS, PORQUE LAS QUIERO HACER EN EL FUTURO
+  // Y NO LAS ELIMINE
   //String _selectedLang = 'es'; // 'es' or 'en'
 
   @override
   Widget build(BuildContext context) {
-  final temaProv = Provider.of<ThemeProvider>(context);
-  final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
-  final scheme  = Theme.of(context).colorScheme;
-  final textTheme  = Theme.of(context).textTheme;
-  final iniciales = usuario != null
-      ? '${usuario.nombre[0]}${usuario.apellido1[0]}'.toUpperCase()
-      : '';
-  Color _avatarColor(int id) =>
+    final temaProv = Provider.of<ThemeProvider>(context);
+    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
+    final scheme  = Theme.of(context).colorScheme;
+    final textTheme  = Theme.of(context).textTheme;
+    final iniciales = usuario != null
+        ? '${usuario.nombre[0]}${usuario.apellido1[0]}'.toUpperCase()
+        : '';
+        
+    Color _avatarColor(int id) =>
       Colors.primaries[id % Colors.primaries.length];
     return Scaffold(
       backgroundColor: scheme.background,
@@ -140,105 +143,105 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     const Divider(height: 1),
 
                     ListTile(
-  leading: Icon(Icons.exit_to_app, color: scheme.error),
-  title: Text(
-    'Cerrar sesión',
-    style: textTheme.bodyMedium!.copyWith(color: scheme.error),
-  ),
-  subtitle: Text(
-    'Se cerrará la sesión de tu cuenta actual.',
-    style: textTheme.bodySmall,
-  ),
-  onTap: () async {
-    final confirmar = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        titlePadding: EdgeInsets.zero,
-        title: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            color: scheme.primary,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-          ),
-          child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.exit_to_app, color: scheme.onPrimary),
-                const SizedBox(width: 8),
-                Text(
-                  'Cerrar sesión',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: scheme.onPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        content: const Text(
-          '¿Estás seguro de que quieres cerrar sesión?',
-          textAlign: TextAlign.center,
-        ),
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        actions: [
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  style: ElevatedButton.styleFrom(
-                    elevation: 2,
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    minimumSize: const Size.fromHeight(40),
-                  ),
-                  child: Text(
-                    'Cancelar',
-                    style: TextStyle(
-                      color: scheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  style: ElevatedButton.styleFrom(
-                    elevation: 2,
-                    backgroundColor: scheme.error,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    minimumSize: const Size.fromHeight(40),
-                  ),
-                  child: Text(
-                    'Cerrar sesión',
-                    style: TextStyle(
-                      color: scheme.onPrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+                      leading: Icon(Icons.exit_to_app, color: scheme.error),
+                      title: Text(
+                        'Cerrar sesión',
+                        style: textTheme.bodyMedium!.copyWith(color: scheme.error),
+                      ),
+                      subtitle: Text(
+                        'Se cerrará la sesión de tu cuenta actual.',
+                        style: textTheme.bodySmall,
+                      ),
+                      onTap: () async {
+                        final confirmar = await showDialog<bool>(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (ctx) => AlertDialog(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            titlePadding: EdgeInsets.zero,
+                            title: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              decoration: BoxDecoration(
+                                color: scheme.primary,
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                              ),
+                              child: Center(
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.exit_to_app, color: scheme.onPrimary),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Cerrar sesión',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: scheme.onPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            content: const Text(
+                              '¿Estás seguro de que quieres cerrar sesión?',
+                              textAlign: TextAlign.center,
+                            ),
+                            actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            actions: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: () => Navigator.of(ctx).pop(false),
+                                      style: ElevatedButton.styleFrom(
+                                        elevation: 2,
+                                        backgroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        minimumSize: const Size.fromHeight(40),
+                                      ),
+                                      child: Text(
+                                        'Cancelar',
+                                        style: TextStyle(
+                                          color: scheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: () => Navigator.of(ctx).pop(true),
+                                      style: ElevatedButton.styleFrom(
+                                        elevation: 2,
+                                        backgroundColor: scheme.error,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        minimumSize: const Size.fromHeight(40),
+                                      ),
+                                      child: Text(
+                                        'Cerrar sesión',
+                                        style: TextStyle(
+                                          color: scheme.onPrimary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
 
-    if (confirmar == true) {
-      Provider.of<UsuarioProvider>(context, listen: false).cerrarSesion();
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('usuario');
-      Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
-    }
-  },
-),
+                        if (confirmar == true) {
+                          Provider.of<UsuarioProvider>(context, listen: false).cerrarSesion();
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.remove('usuario');
+                          Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),

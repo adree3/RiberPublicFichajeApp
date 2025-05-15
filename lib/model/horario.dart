@@ -1,10 +1,13 @@
+/// Modelo Horario
 class Horario {
+  /// Atributos
   final int id;
   final Dia dia;
   final String horaEntrada;
   final String horaSalida;
   final int grupoId;
 
+  /// Constructor
   Horario({
     required this.id,
     required this.dia,
@@ -13,6 +16,7 @@ class Horario {
     required this.grupoId,
   });
 
+  /// Convierte el json al modelo Horario 
   factory Horario.fromJsonWithGroup(Map<String, dynamic> json, int grupoId) {
     return Horario(
       id: json['id'] as int,
@@ -23,12 +27,10 @@ class Horario {
     );
   }
 
-   /// De un solo parámetro, extrae el grupoId aunque venga como int o como objeto
+   
+  /// Convierte el json al modelo Horario 
   factory Horario.fromJson(Map<String, dynamic> json) {
-    // ’grupo’ puede venir como:
-    //  • int                →  3
-    //  • Map<String, dynamic> → { 'id': 3 }
-    //  • o incluso un campo 'grupoId'
+    // El grupo puede venir o compo int o como {int, }
     final dynamic rawGrupo = json['grupo'] ?? json['grupoId'];
     late final int gid;
     if (rawGrupo is int) {
@@ -45,14 +47,15 @@ class Horario {
     );
 
     return Horario(
-      id:          json['id']           as int,
-      dia:         diaEnum,
-      horaEntrada: json['horaEntrada']  as String,
-      horaSalida:  json['horaSalida']   as String,
-      grupoId:     gid,
+      id: json['id'] as int,
+      dia: diaEnum,
+      horaEntrada: json['horaEntrada'] as String,
+      horaSalida: json['horaSalida'] as String,
+      grupoId: gid,
     );
   }
 
+  /// Convierte del modelo Horario a Json
   Map<String, dynamic> toJson() {
     return {
       'id': id,

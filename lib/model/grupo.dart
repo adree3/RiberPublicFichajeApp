@@ -1,13 +1,15 @@
 import 'usuario.dart';
 import 'horario.dart';
-
+/// Modelo Grupo
 class Grupo {
+  /// Atributos
   final int? id;
   final String nombre;
   final int faltasTotales;
   final List<Usuario> usuarios;
   final List<Horario> horarios;
 
+  /// Constructor
   Grupo({
     this.id,
     required this.nombre,
@@ -16,16 +18,18 @@ class Grupo {
     required this.horarios,
   });
 
+
+  /// Convierte el json al modelo Grupo 
   factory Grupo.fromJson(Map<String, dynamic> json) {
     final gid = json['id'] as int;
 
-    // 1) Solo mapeamos usuarios si vienen objetos completos:
+    // si viene el objeto completo lo mapeamos y sino una lista vacia
     final usuarios = (json['usuarios'] as List<dynamic>?)
             ?.map((u) => Usuario.fromJson(u as Map<String, dynamic>))
             .toList() ??
-        <Usuario>[];  // si no vienen, lista vacía
+        <Usuario>[]; 
 
-    // 2) Lo mismo para horarios
+    // lo mismo para horarios
     final horarios = (json['horarios'] as List<dynamic>?)
             ?.map((h) => Horario.fromJsonWithGroup(h as Map<String, dynamic>, gid))
             .toList() ??
@@ -41,6 +45,7 @@ class Grupo {
   }
 
 
+  /// Convierte del modelo Grupo a Json
   Map<String, dynamic> toJson() {
     return {
       'id': id,

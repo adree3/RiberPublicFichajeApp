@@ -20,12 +20,14 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
   final _emailFiltroCtrl = TextEditingController();
   Grupo? _filtrarGrupo;
 
+  /// Al inciar la pantalla cargan los datos
   @override
   void initState() {
     super.initState();
     _initData = _cargarDatos();
   }
-
+  
+  /// Recibe del service los grupos y usuarios
   Future<void> _cargarDatos() async {
     final grupos = await GrupoService().getGrupos();
     final usuarios = await UsuarioService().getUsuarios();
@@ -35,8 +37,12 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
     });
   }
 
-  Future<void> _recargar() async => _cargarDatos();
+  /// Recarga llamando a recargar datos
+  Future<void> _recargar() async {
+    _cargarDatos();
+  }
 
+  /// Filtra por el email y grupo
   List<Usuario> get _filtros {
     return _usuarios.where((usuario) {
       final emailIgual = usuario.email
@@ -49,9 +55,11 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
     }).toList();
   }
 
+  /// Calcula el color del avatar por el id
   Color _avatarColor(int id) =>
       Colors.primaries[id % Colors.primaries.length];
 
+  /// Dialogo para crear un usuario
   void crearUsuarioDialogo() {
     final scheme = Theme.of(context).colorScheme;
     showDialog<bool>(
@@ -100,6 +108,7 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
     });
   }
 
+  /// Dialogo para editar un usuario
   void _editarUsuarioDialogo(Usuario usuario, ColorScheme scheme) {
     showDialog<bool>(
       context: context,
@@ -148,90 +157,94 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
       }
     });
   }
+
+  /// Dialogo para confirmar eliminar un usuario
   Future<bool?> _mostrarConfirmacion(BuildContext context, Usuario usuario, ColorScheme scheme) {
-  return showDialog<bool>(
-    context: context,
-    barrierDismissible: false,
-    builder: (dctx) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      titlePadding: EdgeInsets.zero,
-      title: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: scheme.primary,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-        ),
-        child: Center(
-          child: Text(
-            'Eliminar Usuario',
-            style: TextStyle(
-              color: scheme.onPrimary,
-              fontWeight: FontWeight.bold,
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        titlePadding: EdgeInsets.zero,
+        title: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: scheme.primary,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          ),
+          child: Center(
+            child: Text(
+              'Eliminar Usuario',
+              style: TextStyle(
+                color: scheme.onPrimary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
-      ),
-      content: Text(
-        '¿Está seguro de que deseas eliminar a\n'
-        '${usuario.email}?',
-        textAlign: TextAlign.center,
-      ),
-      actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      actions: [
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(dctx, false),
-                style: ElevatedButton.styleFrom(
-                  elevation: 2,
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  minimumSize: const Size.fromHeight(40),
-                ),
-                child: Text(
-                  'Cancelar',
-                  style: TextStyle(
-                    color: scheme.primary,
-                    fontWeight: FontWeight.bold,
+        content: Text(
+          '¿Está seguro de que deseas eliminar a\n'
+          '${usuario.email}?',
+          textAlign: TextAlign.center,
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(dctx, false),
+                  style: ElevatedButton.styleFrom(
+                    elevation: 2,
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    minimumSize: const Size.fromHeight(40),
+                  ),
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(dctx, true),
-                style: ElevatedButton.styleFrom(
-                  elevation: 2,
-                  backgroundColor: scheme.error,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  minimumSize: const Size.fromHeight(40),
-                ),
-                child: Text(
-                  'Eliminar',
-                  style: TextStyle(
-                    color: scheme.onPrimary,
-                    fontWeight: FontWeight.bold,
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(dctx, true),
+                  style: ElevatedButton.styleFrom(
+                    elevation: 2,
+                    backgroundColor: scheme.error,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    minimumSize: const Size.fromHeight(40),
+                  ),
+                  child: Text(
+                    'Eliminar',
+                    style: TextStyle(
+                      color: scheme.onPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
-        )
-      ],
-    ),
-  );
-}
+            ],
+          )
+        ],
+      ),
+    );
+  }
 
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    // Filtra los usuarios activos
     final activos = _filtros
         .where((u) => u.estado == Estado.activo)
         .toList();
+    // Filtra los usuarios inactivos
     final inactivos = _filtros
         .where((u) => u.estado != Estado.activo)
         .toList();
@@ -296,20 +309,20 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
               child: RefreshIndicator(
                 onRefresh: _recargar,
                 child: ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, kBottomNavigationBarHeight + 16),
                   children: [
                     if (activos.isNotEmpty) ...[
                       const Text('Usuarios Activos',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
-                      ...activos.map((u) => _buildUsuarioTile(u, scheme)),
+                      ...activos.map((u) => _buildUsuarioApartado(u, scheme)),
                       const Divider(thickness: 2),
                     ],
                     if (inactivos.isNotEmpty) ...[
                       const Text('Usuarios Inactivos',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
-                      ...inactivos.map((u) => _buildUsuarioTile(u, scheme)),
+                      ...inactivos.map((u) => _buildUsuarioApartado(u, scheme)),
                     ],
                   ],
                 ),
@@ -320,7 +333,8 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
       },
     );
   }
-  Widget _buildUsuarioTile(Usuario usuario, ColorScheme scheme) {
+  /// Widget para reutilizar codigo
+  Widget _buildUsuarioApartado(Usuario usuario, ColorScheme scheme) {
     final iniciales = '${usuario.nombre[0]}${usuario.apellido1[0]}'.toUpperCase();
     final colorFondo = _avatarColor(usuario.id);
     final grupo = _grupos

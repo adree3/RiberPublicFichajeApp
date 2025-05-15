@@ -25,10 +25,14 @@ class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
 
   Rol? _rolSeleccionado;
   Grupo? _grupoSeleccionado;
-  late Future<List<dynamic>> _futureData;
+
+  bool _mostrarContrasena = true;
   bool _loading = false;
   bool _comprobandoCorreo = false;
   String? _emailError;
+
+  late Future<List<dynamic>> _futureData;
+
 
   /// Al iniciar obtiene los grupos y usuarios
   @override
@@ -68,7 +72,8 @@ class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
     setState(() {
       _comprobandoCorreo = true;
     });
-    final enUso = usuarios.any((usuario) => usuario.email.toLowerCase() == email.toLowerCase());
+    final correo = '${email.trim().toLowerCase()}@educa.jcyl.es';
+    final enUso = usuarios.any((usuario) => usuario.email.toLowerCase() == correo);
     setState(() {
       _emailError = enUso ? 'Este correo ya está registrado' : null;
       _comprobandoCorreo = false;
@@ -89,6 +94,8 @@ class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
       _loading = true;
     });
     try {
+      final correo = _emailCtrl.text.trim().toLowerCase();
+      final correoFinal  = '$correo@educa.jcyl.es';
       final nuevoUsuario = Usuario(
         id: 0,
         nombre: _nombreCtrl.text.trim(),
@@ -96,7 +103,7 @@ class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
         apellido2: _apellido2Ctrl.text.trim().isEmpty
             ? null
             : _apellido2Ctrl.text.trim(),
-        email: _emailCtrl.text.trim(),
+        email: correoFinal,
         contrasena: _contraCtrl.text.trim(),
         rol: _rolSeleccionado!,
         grupoId: _grupoSeleccionado!.id,
@@ -146,6 +153,7 @@ class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
           padding: const EdgeInsets.all(16),
           child: Form(
             key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -179,6 +187,7 @@ class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
                 TextFormField(
                   controller: _emailCtrl,
                   decoration: _inputDecoration('Email', Icons.email).copyWith(
+                    suffixText: '@educa.jcyl.es',
                     suffixIcon: _comprobandoCorreo
                       ? const SizedBox(
                           width: 20,
@@ -212,11 +221,27 @@ class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _contraCtrl,
-                  decoration: _inputDecoration('Contraseña', Icons.lock),
-                  obscureText: false,
+                  decoration: _inputDecoration('Contraseña', Icons.lock).copyWith(
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _mostrarContrasena ? Icons.visibility : Icons.visibility_off
+                      ),
+                      onPressed: () => setState(() => _mostrarContrasena = !_mostrarContrasena),
+                    ),
+                  ),
+                  obscureText: _mostrarContrasena,
                   validator: (value) {
                     if (value  == null|| value.isEmpty){
                       return "Introduce una contraseña";
+                    }
+                    if (value.length < 6) {
+                      return 'Mínimo 6 caracteres';
+                    }
+                    if (!RegExp(r'(?=.*[A-Z])').hasMatch(value)) {
+                      return 'Debe incluir al menos una mayúscula';
+                    }
+                    if (!RegExp(r'(?=.*\d)').hasMatch(value)) {
+                      return 'Debe incluir al menos un número';
                     }
                     return null;
                   }
