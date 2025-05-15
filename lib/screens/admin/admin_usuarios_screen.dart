@@ -52,7 +52,7 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
   Color _avatarColor(int id) =>
       Colors.primaries[id % Colors.primaries.length];
 
-  void onCreate() {
+  void crearUsuarioDialogo() {
     final scheme = Theme.of(context).colorScheme;
     showDialog<bool>(
       context: context,
@@ -100,7 +100,7 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
     });
   }
 
-  void _onEdit(Usuario usuario, ColorScheme scheme) {
+  void _editarUsuarioDialogo(Usuario usuario, ColorScheme scheme) {
     showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -149,69 +149,93 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
     });
   }
   Future<bool?> _mostrarConfirmacion(BuildContext context, Usuario usuario, ColorScheme scheme) {
-    return showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        backgroundColor: Colors.white,
-        titlePadding: EdgeInsets.zero,
-        title: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            color: scheme.primary,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+  return showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (dctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      titlePadding: EdgeInsets.zero,
+      title: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: scheme.primary,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        ),
+        child: Center(
+          child: Text(
+            'Eliminar Usuario',
+            style: TextStyle(
+              color: scheme.onPrimary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          child: Center(
-            child: Text(
-              'Eliminar usuario',
-              style: TextStyle(
-                color: scheme.onPrimary,
-                fontWeight: FontWeight.bold,
+        ),
+      ),
+      content: Text(
+        '¿Está seguro de que deseas eliminar a\n'
+        '${usuario.email}?',
+        textAlign: TextAlign.center,
+      ),
+      actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      actions: [
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(dctx, false),
+                style: ElevatedButton.styleFrom(
+                  elevation: 2,
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  minimumSize: const Size.fromHeight(40),
+                ),
+                child: Text(
+                  'Cancelar',
+                  style: TextStyle(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-        content: Text(
-          '¿Está seguro de que deseas eliminar a\n'
-          '${usuario.email}?',
-          textAlign: TextAlign.center,
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actionsPadding: const EdgeInsets.only(bottom: 12),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.pop(dctx, false),
-            style: ElevatedButton.styleFrom(
-              elevation: 2,
-              foregroundColor: scheme.primary,
-              minimumSize: const Size(100, 40),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(dctx, true),
+                style: ElevatedButton.styleFrom(
+                  elevation: 2,
+                  backgroundColor: scheme.error,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  minimumSize: const Size.fromHeight(40),
+                ),
+                child: Text(
+                  'Eliminar',
+                  style: TextStyle(
+                    color: scheme.onPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
-            child: const Text('Cancelar'),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(dctx, true),
-            style: ElevatedButton.styleFrom(
-              elevation: 2,
-              backgroundColor: scheme.error,
-              foregroundColor: scheme.onPrimary,
-              minimumSize: const Size(100, 40),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        )
+      ],
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-
+    final activos = _filtros
+        .where((u) => u.estado == Estado.activo)
+        .toList();
+    final inactivos = _filtros
+        .where((u) => u.estado != Estado.activo)
+        .toList();
+    
     return FutureBuilder<void>(
       future: _initData,
       builder: (ctx, snap) {
@@ -271,73 +295,23 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _recargar,
-                child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-                  itemCount: _filtros.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (_, i) {
-                    final usuario = _filtros[i];
-                    final iniciales =
-                        '${usuario.nombre[0]}${usuario.apellido1[0]}';
-                    final colorFondo = _avatarColor(usuario.id);
-                    final grupo = _grupos
-                        .firstWhere(
-                          (g) => g.id == usuario.grupoId,
-                          orElse: () => Grupo(
-                            id: 0,
-                            nombre: '—',
-                            faltasTotales: 0,
-                            usuarios: [],
-                            horarios: [],
-                          ),
-                        )
-                        .nombre;
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      elevation: 2,
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: colorFondo,
-                          child: Text(iniciales),
-                        ),
-                        title: Text('${usuario.nombre} ${usuario.apellido1} ${usuario.apellido2 ?? ""}'),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(usuario.email),
-                            Text('Grupo: $grupo'),
-                          ],
-                        ),
-                        isThreeLine: true,
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.edit, color: scheme.primary),
-                              onPressed: () {
-                                _onEdit(usuario, scheme);
-                              }
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete, color: scheme.error),
-                              onPressed: () async {
-                                final confirmar = await _mostrarConfirmacion(context, usuario, scheme);
-                                if (confirmar == true) {
-                                  await UsuarioService().eliminarUsuario(usuario.id);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Usuario eliminado')),
-                                  );
-                                  _recargar();
-                                }
-                              },
-                            ),
-                            
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    if (activos.isNotEmpty) ...[
+                      const Text('Usuarios Activos',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      ...activos.map((u) => _buildUsuarioTile(u, scheme)),
+                      const Divider(thickness: 2),
+                    ],
+                    if (inactivos.isNotEmpty) ...[
+                      const Text('Usuarios Inactivos',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      ...inactivos.map((u) => _buildUsuarioTile(u, scheme)),
+                    ],
+                  ],
                 ),
               ),
             ),
@@ -346,4 +320,47 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
       },
     );
   }
+  Widget _buildUsuarioTile(Usuario usuario, ColorScheme scheme) {
+    final iniciales = '${usuario.nombre[0]}${usuario.apellido1[0]}'.toUpperCase();
+    final colorFondo = _avatarColor(usuario.id);
+    final grupo = _grupos
+        .firstWhere((g) => g.id == usuario.grupoId, orElse: () => Grupo(
+          id: 0, nombre: '—', faltasTotales: 0, usuarios: [], horarios: []))
+        .nombre;
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: colorFondo,
+          child: Text(iniciales),
+        ),
+        title: Text('${usuario.nombre} ${usuario.apellido1} ${usuario.apellido2??""}'),
+        subtitle: Text('${usuario.email}\nGrupo: $grupo'),
+        isThreeLine: true,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.edit, color: scheme.primary),
+              onPressed: () => _editarUsuarioDialogo(usuario, scheme),
+            ),
+            IconButton(
+              icon: Icon(Icons.delete, color: scheme.error),
+              onPressed: () async {
+                final ok = await _mostrarConfirmacion(context, usuario, scheme);
+                if (ok == true) {
+                  await UsuarioService().eliminarUsuario(usuario.id);
+                  _recargar();
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }

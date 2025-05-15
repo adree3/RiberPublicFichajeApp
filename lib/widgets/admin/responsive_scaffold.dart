@@ -1,8 +1,6 @@
 // lib/widgets/admin/responsive_scaffold.dart
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:riber_republic_fichaje_app/providers/usuario_provider.dart';
 import 'package:riber_republic_fichaje_app/utils/tamanos.dart';
 import 'package:riber_republic_fichaje_app/widgets/admin/admin_drawer.dart';
 

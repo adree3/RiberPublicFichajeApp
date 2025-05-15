@@ -74,15 +74,18 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 40.0),
+                  padding: const EdgeInsets.symmetric(vertical: 10.0),
                   child: Container(
-                    width: 120, 
-                    height: 120, 
+                    width: 350, 
+                    height: 300, 
                     decoration: BoxDecoration(
                       color: scheme.surface,
                       borderRadius: BorderRadius.circular(10),
+                      image: const DecorationImage(
+                        image: AssetImage('assets/images/logo.png'),
+                        fit: BoxFit.contain,
+                      ),
                     ),
-                    child: Icon(Icons.image, size: 60, color: scheme.onSurface),
                   ),
                 ),
                 

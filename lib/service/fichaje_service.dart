@@ -53,9 +53,10 @@ class FichajeService {
   }
 
   /// PUT /fichajes/cerrarFichaje/{idUsuario}
-  static Future<Fichaje> cerrarFichaje(int idUsuario) async {
-    final uri = Uri.parse('$_baseUrl/cerrarFichaje/$idUsuario');
-    final response = await http.put(uri, headers: {
+  static Future<Fichaje> cerrarFichaje({required int idUsuario, required bool nfcUsado}) async {
+    final response = await http.put(
+      Uri.parse('$_baseUrl/cerrarFichaje/$idUsuario?nfcUsado=$nfcUsado',), 
+      headers: {
       'Content-Type': 'application/json',
     });
     if (response.statusCode == 200) {

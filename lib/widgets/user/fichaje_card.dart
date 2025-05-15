@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:riber_republic_fichaje_app/model/fichaje.dart';
 import 'package:riber_republic_fichaje_app/model/horarioHoy.dart';
+import 'package:riber_republic_fichaje_app/screens/user/fichajes_screen.dart';
 import 'package:riber_republic_fichaje_app/screens/user/justificar_ausencia_screen.dart';
 
 class FichajeCard extends StatelessWidget {
@@ -82,14 +83,22 @@ class FichajeCard extends StatelessWidget {
                   // Color cuando está deshabilitado
                   disabledColor: Colors.grey.shade400,
                   onPressed: yaJustificado
-                  ? null             
-                  : () {
-                    if (dia != null) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => JustificarAusenciaScreen(usuario: fichaje.usuario,fecha: dia),),
+                  ? null
+                  : () async {
+                      if (dia == null) return;
+                      // 1) Navegas y esperas a que cierre la pantalla de justificar
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => JustificarAusenciaScreen(
+                            usuario: fichaje.usuario,
+                            fecha: dia,
+                          ),
+                        ),
                       );
-                    }
-                  },
+                      // sirve para llamar a recargar fichajes de fichajesScreen desde aqui
+                      final parentState = context.findAncestorStateOfType<FichajesScreenState>();
+                      parentState?.recargarFichajes();
+                    },
                 ),
               ),
             ],

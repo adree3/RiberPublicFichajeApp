@@ -25,13 +25,16 @@ class AdminAusenciasScreenState extends State<AdminAusenciasScreen> {
     _initData = _cargarDatos();
   }
 
-  /// Recupera del API las a usencias y usuarios
+  /// Recupera del API las a usencias y usuarios (solo carga las ausencias las cuales
+  /// su usuario este activo)
   Future<void> _cargarDatos() async {
     final ausencias = await AusenciaService().getAusencias();
-    final usuarios = await UsuarioService().getUsuarios();
+    final usuarios = await UsuarioService().getUsuariosActivos();
     setState(() {
-      _ausencias = ausencias;
       _usuarios = usuarios;
+      _ausencias = ausencias
+        .where((a) => usuarios.any((u) => u.id == a.usuario.id))
+        .toList();
     });
   }
 
@@ -170,7 +173,7 @@ class AdminAusenciasScreenState extends State<AdminAusenciasScreen> {
                         leading: CircleAvatar(
                           backgroundColor: _avatarColor(usuario.id),
                           child: Text(
-                            '${usuario.nombre[0]}${usuario.apellido1[0]}',
+                            '${usuario.nombre[0]}${usuario.apellido1[0]}'.toUpperCase(),
                             style: const TextStyle(color: Colors.white),
                           ),
                         ),

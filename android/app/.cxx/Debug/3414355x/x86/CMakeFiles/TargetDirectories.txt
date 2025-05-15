@@ -1,0 +1,2 @@
+C:/riber_republic_fichaje_app_github/RiberRepublicFichajeApp/android/app/.cxx/Debug/3414355x/x86/CMakeFiles/edit_cache.dir
+C:/riber_republic_fichaje_app_github/RiberRepublicFichajeApp/android/app/.cxx/Debug/3414355x/x86/CMakeFiles/rebuild_cache.dir

@@ -40,15 +40,26 @@ class HorarioService {
   }
 
   /// Crea un horario, con los datos recibidos y se le asigna el grupo indicado
-  /// POST /horarios/nuevaHorario/{idGrupo}
-  Future<bool> crearHorario(Horario horario, int idGrupo) async {
+  /// POST /horarios/nuevoHorario
+  static Future<Horario> crearHorario({required int grupoId, required String dia, required String horaEntrada, required String horaSalida}) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/nuevaHorario?idGrupo=$idGrupo'),
+      Uri.parse('$baseUrl/nuevoHorario?idGrupo=$grupoId'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(horario.toJson()),
+      body: jsonEncode({
+        'dia': dia,
+        'horaEntrada': horaEntrada,
+        'horaSalida': horaSalida,
+      }),
     );
 
-    return response.statusCode == 201;
+    if (response.statusCode == 201) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      return Horario.fromJson(data);
+    } else {
+      throw Exception(
+        'Error creando horario: ${response.statusCode} ${response.body}'
+      );
+    }
   }
 
   /// Edita un horario, por el id, y los datos a editar

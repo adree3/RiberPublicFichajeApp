@@ -52,7 +52,7 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
     // Cargamos grupos y lista de usuarios para validar email
     _futureData = Future.wait([
       GrupoService().getGrupos(),
-      UsuarioService().getUsuarios(),
+      UsuarioService().getUsuariosActivos(),
     ]);
   }
 
@@ -192,23 +192,21 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
                   controller: _emailCtrl,
                   decoration: _inputDecoration('Email', Icons.email).copyWith(
                     suffixIcon: _checkingEmail
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: Padding(
-                              padding: EdgeInsets.all(4),
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          )
-                        : null,
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: Padding(
+                          padding: EdgeInsets.all(4),
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : null,
                   ),
                   keyboardType: TextInputType.emailAddress,
                   autocorrect: false,
                   onChanged: (val) {
                     if (_emailError != null) setState(() => _emailError = null);
-                    if (val.contains('@')) {
-                      _comprobarCorreo(val.trim(), usuarios);
-                    }
+                    _comprobarCorreo(val.trim(), usuarios);
                   },
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Introduce un correo';
@@ -269,40 +267,45 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
                 const SizedBox(height: 24),
 
                 // Botón actualizar
-                ElevatedButton(
-                  onPressed: _loading
-                      ? null
-                      : () {
-                          if (_formKey.currentState!.validate()) {
-                            _editarUsuario(_grupoSeleccionado!.id!);
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    elevation: 2,
-                    minimumSize: const Size.fromHeight(44),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _loading
+                            ? null
+                            : () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)
+                          ),
+                          backgroundColor: scheme.onPrimary
+                        ),
+                        child: Text('Cancelar', style: TextStyle(color: scheme.error, fontWeight: FontWeight.bold)),
+                      ),
                     ),
-                    backgroundColor: scheme.primary
-                  ),
-                  child: Text('Actualizar Usuario', style: TextStyle(color: scheme.onPrimary, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 8),
-
-                ElevatedButton(
-                  onPressed: _loading
-                      ? null
-                      : () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    elevation: 2,
-                    minimumSize: const Size.fromHeight(44),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)
+                    SizedBox(width: 8,),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _loading
+                        ? null
+                        : () {
+                            if (_formKey.currentState!.validate()) {
+                              _editarUsuario(_grupoSeleccionado!.id!);
+                            }
+                          },
+                        style: ElevatedButton.styleFrom(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)
+                          ),
+                          backgroundColor: scheme.primary
+                        ),
+                        child: Text('Actualizar', style: TextStyle(color: scheme.onPrimary, fontWeight: FontWeight.bold)),
+                      ),
                     ),
-                    backgroundColor: scheme.onPrimary
-                  ),
-                  child: Text('Cancelar', style: TextStyle(color: scheme.error, fontWeight: FontWeight.bold)),
-                ),
+                  ],
+                )
               ],
             ),
           ),

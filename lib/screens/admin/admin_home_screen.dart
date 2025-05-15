@@ -19,12 +19,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   final _usuariosKey = GlobalKey<AdminUsuariosScreenState>();
   final _ausenciasKey  = GlobalKey<AdminAusenciasScreenState>();
   final _gruposkey  = GlobalKey<AdminGruposScreenState>();
+  final _horarioskey  = GlobalKey<AdminHorariosScreenState>();
 
   static final pantallas = [
-    NavigationDestination(icon: Icon(Icons.person), label: 'Usuarios'),
-    NavigationDestination(icon: Icon(Icons.group), label: 'Grupos'),
-    NavigationDestination(icon: Icon(Icons.schedule),    label: 'Horarios'),
-    NavigationDestination(icon: Icon(Icons.event_busy), label: 'Ausencias'),
+    const NavigationDestination(icon: Icon(Icons.person), label: 'Usuarios'),
+    const NavigationDestination(icon: Icon(Icons.group), label: 'Grupos'),
+    const NavigationDestination(icon: Icon(Icons.schedule), label: 'Horarios'),
+    const NavigationDestination(icon: Icon(Icons.event_busy), label: 'Ausencias'),
   ];
 
   late final List<Widget> _screens;
@@ -32,11 +33,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   @override
   void initState() {
     super.initState();
-    // 3) Ahora sí puedes usar los keys
     _screens = [
       AdminUsuariosScreen(key: _usuariosKey),
       AdminGruposScreen(key: _gruposkey),
-      AdminHorariosScreen(),
+      AdminHorariosScreen(key: _horarioskey,),
       AdminAusenciasScreen(key: _ausenciasKey),
     ];
   }
@@ -59,7 +59,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           icon: const Icon(Icons.add),
           label: const Text('Nuevo'),
           onPressed: () {
-            _usuariosKey.currentState?.onCreate();
+            _usuariosKey.currentState?.crearUsuarioDialogo();
           },
         );
       
@@ -71,7 +71,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             _gruposkey.currentState?.crearGrupoDialogo();
           },
         );
-
+      case 2: // Grupos
+        return FloatingActionButton.extended(
+          icon: const Icon(Icons.add),
+          label: const Text('Nuevo'),
+          onPressed: () {
+            _horarioskey.currentState?.crearHorarioDialogo();
+          },
+        );
       case 3: // Ausencias
         return FloatingActionButton.extended(
           icon: const Icon(Icons.refresh),

@@ -21,19 +21,43 @@ dependencies:
   provider: ^6.1.2
   path: ^1.9.0
   collection: ^1.17.0
-  flutter_typeahead: ^4.1.0
+  flutter_typeahead: ^5.2.0
   file_selector: ^0.8.0
   intl: any
   excel: ^2.1.0
   path_provider: ^2.0.0
-
+  nfc_manager: ^3.0.0
+  flutter_keyboard_visibility: 5.0.3
   
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.10.0
+
+
+dependency_overrides:
+  flutter_keyboard_visibility:
+    git:
+      url: https://github.com/MisterJimson/flutter_keyboard_visibility.git
+      ref: 1fd23e5
+      path: flutter_keyboard_visibility
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.png"
+  windows:
+    generate: true
+    image_path: "assets/images/logo.png"
+    icon_size: 48
 
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - assets/images/nfc_background.png
+    - assets/images/check.png
+    - assets/images/cross.png
+    - assets/images/logo.png
   

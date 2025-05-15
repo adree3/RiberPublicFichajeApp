@@ -7,9 +7,22 @@ import 'package:riber_republic_fichaje_app/utils/api_config.dart';
 class UsuarioService {
   static String get baseUrl => ApiConfig.baseUrl + '/usuarios';
 
+  /// Obtiene todos los usuarios 
+  /// GET /usuarios/
+  Future<List<Usuario>> getUsuarios() async {
+    final response = await http.get(Uri.parse('$baseUrl/'));
+    if (response.statusCode == 200) {
+      final utf8Body = utf8.decode(response.bodyBytes);
+      final List<dynamic> lista = jsonDecode(utf8Body);
+      return lista.map((json) => Usuario.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al obtener usuarios');
+    }
+  }
+
   /// Obtiene los usuarios activos
   /// GET /usuarios/activos
-  Future<List<Usuario>> getUsuarios() async {
+  Future<List<Usuario>> getUsuariosActivos() async {
     final response = await http.get(Uri.parse('$baseUrl/activos'));
     if (response.statusCode == 200) {
       final utf8Body = utf8.decode(response.bodyBytes);

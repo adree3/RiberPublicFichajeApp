@@ -56,6 +56,7 @@ class FichajesScreenState extends State<FichajesScreen> {
  
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
     // si el usuario es null vuelve al login, para que se logge, 
     //utilizo esta forma ya que si utilizo el navigator.push directamente da un error de setState.
@@ -70,7 +71,7 @@ class FichajesScreenState extends State<FichajesScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: scheme.background,
       body: SafeArea(
         child: FutureBuilder<HorarioHoy>(
           future: _horarioFuture,
@@ -79,10 +80,44 @@ class FichajesScreenState extends State<FichajesScreen> {
               return const Center(child: CircularProgressIndicator());
             }
             if (horSnap.hasError) {
-              return Center(child: Text("Error horario: ${horSnap.error}"));
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.schedule, size: 72, color: scheme.error),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No tienes un horario definido para hoy.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium!
+                            .copyWith(color: scheme.error),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _horarioFuture = UsuarioService.getHorarioDeHoy(_idUsuario!);
+                          });
+                        },
+                        icon: Icon(Icons.refresh, color: scheme.onPrimary),
+                        label: Text('Recargar', style: TextStyle(color: scheme.onPrimary)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: scheme.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             }
             final horarioHoy = horSnap.data!;
-
             return FutureBuilder<List<Fichaje>>(
               future: _fichajesFuture,
               builder: (context, fichSnap) {
@@ -90,7 +125,43 @@ class FichajesScreenState extends State<FichajesScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (fichSnap.hasError) {
-                  return Center(child: Text("Error fichajes: ${fichSnap.error}"));
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.error_outline, size: 72, color: scheme.error),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No se pudieron cargar tus fichajes.',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium!
+                                .copyWith(color: scheme.error),
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _fichajesFuture =
+                                  FichajeService.getFichajesPorUsuario(_idUsuario!);
+                              });
+                            },
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Reintentar'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: scheme.primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 }
                 final todosFichajes = fichSnap.data!;
                 // con la lista de fichajes, suma todas las horas trabajadas

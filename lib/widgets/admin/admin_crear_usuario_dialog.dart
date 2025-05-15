@@ -36,7 +36,7 @@ class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
     super.initState();
     _futureData = Future.wait([
       GrupoService().getGrupos(),
-      UsuarioService().getUsuarios()
+      UsuarioService().getUsuariosActivos()
     ]);
   }
 
@@ -260,37 +260,37 @@ class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
                   }
                 ),
                 const SizedBox(height: 24),
-                Align(
-                  alignment: Alignment.center,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      elevation: 2,
-                      minimumSize: const Size.fromHeight(44),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onPressed: (){
+                          Navigator.pop(context);
+                        },
+                        child: Text('Cancelar', style: TextStyle(color: scheme.error, fontWeight: FontWeight.bold)),
                       ),
-                      backgroundColor: scheme.primary
                     ),
-                    onPressed: _loading ? null : _crearUsuario,
-                    child: Text('Crear Usuario', style: TextStyle(color: scheme.onPrimary, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.center,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      elevation: 2,
-                      minimumSize: const Size.fromHeight(44),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          backgroundColor: scheme.primary
+                        ),
+                        onPressed: _loading ? null : _crearUsuario,
+                        child: Text('Crear', style: TextStyle(color: scheme.onPrimary, fontWeight: FontWeight.bold)),
+                      ),
                     ),
-                    onPressed: (){
-                      Navigator.pop(context);
-                    },
-                    child: Text('Cancelar', style: TextStyle(color: scheme.error, fontWeight: FontWeight.bold)),
-                  ),
-                ),
+                  ],
+                )
               ],
             ),
           ),

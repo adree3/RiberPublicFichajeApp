@@ -11,6 +11,7 @@ import 'package:riber_republic_fichaje_app/screens/user/fichajes_screen.dart';
 import 'package:riber_republic_fichaje_app/service/fichaje_service.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
 import 'package:riber_republic_fichaje_app/utils/fichajeUtils.dart';
+import 'package:riber_republic_fichaje_app/widgets/user/fichaje_nfc.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -42,22 +43,41 @@ class _HomeScreenState extends State<HomeScreen> {
       _fichajesKey.currentState?.recargarFichajes();
     }
   }
+  Color _avatarColor(int id) =>
+      Colors.primaries[id % Colors.primaries.length];
   /// appbar para las pantallas, si es la 2 va sin icono
   PreferredSizeWidget? _buildAppBar() {
+    final scheme = Theme.of(context).colorScheme;
+
     if (_currentIndex == 2) return null;
+    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
+    final iniciales = usuario != null
+      ? '${usuario.nombre[0]}${usuario.apellido1[0]}'.toUpperCase()
+      : '';
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
       automaticallyImplyLeading: false, 
       actions: [
-        IconButton(
-          icon: const Icon(Icons.person),
-          onPressed: () {
-            setState(() {
-              _currentIndex = 2;
-            });
-          },
+        Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _currentIndex = 2;
+              });
+            },
+            child: CircleAvatar(
+              backgroundColor: _avatarColor(usuario!.id),
+              child: Text(
+                iniciales,
+                style: TextStyle(
+                  color: scheme.onPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -176,6 +196,51 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
     super.dispose();
   }
 
+  void _mostrarOpcionesFichaje() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+      ),
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('¿Cómo quieres fichar?' ),
+              const SizedBox(height: 12),
+              ListTile(
+                leading: Icon(Icons.nfc, color: Theme.of(context).primaryColor),
+                title: const Text('Con NFC'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Navega a pantalla NFC y decide abrir/cerrar allí:
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (_) => FichajeNfcScreen(
+                      trabajando: _trabajando,
+                      onCompletar: (cerrado) => _onFichajeCompletado(cerrado, true),
+                    ),
+                  ));
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.fingerprint, color: Theme.of(context).primaryColor),
+                title: const Text('Sin NFC'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Llamada directa:
+                  _onFichajeCompletado(_trabajando, false);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+
   Future<void> _onBotonPulsado() async {
     // obtengo el usuario que ha iniciado sesi
     final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario!;
@@ -192,7 +257,7 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
     } else {
       _timer?.cancel();
       // Cierra el fichaje de hoy
-      final fichajeCerrado = await FichajeService.cerrarFichaje(usuario.id);
+      final fichajeCerrado = await FichajeService.cerrarFichaje(idUsuario:  usuario.id, nfcUsado: false);
       setState(() {
         _trabajando   = false;
         // Suma al tiempo total lo de este fichaje
@@ -209,17 +274,55 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario!;
 
     super.build(context);
     return FutureBuilder<void>(
       future: _initFuture,
       builder: (ctx, snap) {
-        if (snap.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+        if (snap.hasError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.schedule, size: 72, color: scheme.error),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No tienes un horario definido para hoy.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium!
+                        .copyWith(color: scheme.error),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _initFuture = _cargaInicial();
+                      });
+                    },
+                    icon:  Icon(Icons.refresh, color: scheme.onPrimary),
+                    label: Text('Recargar', style: TextStyle(color: scheme.onPrimary)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: scheme.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
         }
+
+        // 3) Si carga bien pero _horarioHoy es null (por seguridad)
         if (_horarioHoy == null) {
           return const Center(child: Text("Error cargando horario"));
-        } 
+        }
         // obtengo el momento
         final ahora = DateTime.now();
         // suma todas las sesiones cerradas de hoy, si estoy en jornada calcula la diferencia que llevo en jornada
@@ -234,12 +337,12 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
             child: Column(
               children: [
                 CircleAvatar(
-                  radius: 80,
+                  radius: 100,
                   backgroundColor: scheme.surface,
-                  child: Icon(Icons.image, size: 60, color: scheme.onSurface),
+                  backgroundImage: const AssetImage('assets/images/logo.png'),
                 ),
                 const SizedBox(height: 10),
-                Text("¡Hola ${Provider.of<UsuarioProvider>(context, listen: false).usuario?.nombre ?? 'Usuario'}!",
+                Text("¡Hola ${usuario.nombre} ${usuario.apellido1} ${usuario.apellido2??""}!",
                   style: Theme.of(context)
                     .textTheme
                     .headlineMedium!
@@ -258,8 +361,7 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
                           style: Theme.of(context)
                               .textTheme
                               .headlineSmall!
-                              .copyWith(color: scheme.error
-                          )
+                              .copyWith(color: scheme.error)
                         ),
                       ],
                     ),
@@ -300,7 +402,7 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _onBotonPulsado,
+                    onPressed: _mostrarOpcionesFichaje,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 25),
                       shape: RoundedRectangleBorder(
@@ -329,5 +431,38 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
     return "${two(duracion.inHours)}:"
            "${two(duracion.inMinutes.remainder(60))}:"
            "${two(duracion.inSeconds.remainder(60))}";
+  }
+
+  Future<void> _onFichajeCompletado(bool fichajeAbierto, bool nfcUsado) async {
+    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario!;
+    if (!fichajeAbierto) {
+      final fichaje = await FichajeService.abrirFichaje(
+        usuario.id,
+        nfcUsado: nfcUsado,
+        ubicacion: 'Oficina Principal',
+      );
+      setState(() {
+        _fichajeEnCurso = fichaje;
+        _trabajando = true;
+        _inicioActual = fichaje.fechaHoraEntrada;
+      });
+      _iniciarTimer();
+    } else {
+      _timer?.cancel();
+      final fichajeCerrado = await FichajeService.cerrarFichaje(
+        idUsuario: usuario.id,
+        nfcUsado: nfcUsado,
+      );
+      setState(() {
+        _trabajando = false;
+        if (_inicioActual != null && fichajeCerrado.fechaHoraSalida != null) {
+          _acumulado += fichajeCerrado
+            .fechaHoraSalida!
+            .difference(_inicioActual!);
+        }
+        _fichajeEnCurso = null;
+        _inicioActual   = null;
+      });
+    }
   }
 }
