@@ -1,5 +1,5 @@
 import 'dart:io' show Platform;
-/// configuracion de las rutas de la API segun la plataforma que sean
+/// Configuracion de las rutas de la API segun la plataforma que sean
 class ApiConfig {
   static String get host {
     if (Platform.isAndroid) {

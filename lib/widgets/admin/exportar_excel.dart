@@ -39,6 +39,7 @@ class ExcelExporter {
         .where((g) => g.nombre != 'Sin Asignar')
         .map((g) => g.id)
         .toSet();
+        
       // Coge los usuarios que pertenezcan a los grupos validados
       final usuariosFiltrados = usuarios
         .where((u) => gruposIdsValidos.contains(u.grupoId))

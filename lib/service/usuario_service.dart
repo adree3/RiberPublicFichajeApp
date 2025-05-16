@@ -1,16 +1,17 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:riber_republic_fichaje_app/model/horarioHoy.dart';
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
 import 'package:riber_republic_fichaje_app/utils/api_config.dart';
+import 'package:riber_republic_fichaje_app/utils/api_client.dart';
 
+/// Conecta el API de usuarios con la aplicacion de flutter
 class UsuarioService {
   static String get baseUrl => ApiConfig.baseUrl + '/usuarios';
 
   /// Obtiene todos los usuarios 
   /// GET /usuarios/
   Future<List<Usuario>> getUsuarios() async {
-    final response = await http.get(Uri.parse('$baseUrl/'));
+    final response = await ApiClient.get(Uri.parse('$baseUrl/'));
     if (response.statusCode == 200) {
       final utf8Body = utf8.decode(response.bodyBytes);
       final List<dynamic> lista = jsonDecode(utf8Body);
@@ -23,7 +24,7 @@ class UsuarioService {
   /// Obtiene los usuarios activos
   /// GET /usuarios/activos
   Future<List<Usuario>> getUsuariosActivos() async {
-    final response = await http.get(Uri.parse('$baseUrl/activos'));
+    final response = await ApiClient.get(Uri.parse('$baseUrl/activos'));
     if (response.statusCode == 200) {
       final utf8Body = utf8.decode(response.bodyBytes);
       final List<dynamic> lista = jsonDecode(utf8Body);
@@ -36,7 +37,7 @@ class UsuarioService {
   /// Obtiene los horarios de hoy de un usuario
   /// GET /usuarios/{idUsuario}/horarioHoy
   static Future<HorarioHoy> getHorarioDeHoy(int idUsuario) async {
-    final response = await http.get(Uri.parse('$baseUrl/$idUsuario/horarioHoy'));
+    final response = await ApiClient.get(Uri.parse('$baseUrl/$idUsuario/horarioHoy'));
 
     if (response.statusCode == 200) {
       final utf8Body = utf8.decode(response.bodyBytes);
@@ -50,7 +51,7 @@ class UsuarioService {
   /// Comprueba si un email ya está registrado
   /// GET /usuarios/existe
   Future<bool> emailEnUso(String email) async {
-    final response = await http.get(Uri.parse('$baseUrl/existe?email=$email'));
+    final response = await ApiClient.get(Uri.parse('$baseUrl/existe?email=$email'));
     if (response.statusCode == 200) {
       final utf8Body = utf8.decode(response.bodyBytes);
       return jsonDecode(utf8Body) as bool;
@@ -62,9 +63,8 @@ class UsuarioService {
   /// Crea un usuario 
   /// POST /usuarios/nuevoUsuario/{idGrupo}
   Future<void> crearUsuario(Usuario usuario, int idGrupo) async {
-    final response = await http.post(
+    final response = await ApiClient.post(
       Uri.parse('$baseUrl/nuevoUsuario?idGrupo=$idGrupo'),
-      headers: {'Content-Type': 'application/json'},
       body: jsonEncode(usuario.toJson()),
     );
 
@@ -76,11 +76,8 @@ class UsuarioService {
   /// Edita la contraseña a un usuario
   /// PUT /usuarios/{idUsuario}/cambiarContrasena
   static Future<void> cambiarContrasena(int idUsuario, String contrasenaActual, String nuevaContrasena) async {
-    final response = await http.put(
+    final response = await ApiClient.put(
       Uri.parse('$baseUrl/$idUsuario/cambiarContrasena'),
-      headers: {
-        'Content-Type': 'application/json'
-      },
       body: jsonEncode({
         'contrasenaActual': contrasenaActual,
         'nuevaContrasena' : nuevaContrasena,
@@ -94,9 +91,8 @@ class UsuarioService {
   /// Edita un usuario
   /// PUT /usuarios/editarUsuario/{id}/update?idGrupo={idGrupo}
   static Future<Usuario> editarUsuario(int idUsuario, Map<String, dynamic> usuarioEditado, int idGrupo) async {
-    final response = await http.put(
+    final response = await ApiClient.put(
       Uri.parse('$baseUrl/editarUsuario/$idUsuario?idGrupo=$idGrupo'),
-      headers: {'Content-Type': 'application/json'},
       body: jsonEncode(usuarioEditado),
     );
     if (response.statusCode == 200) {
@@ -112,11 +108,7 @@ class UsuarioService {
   /// Elimina un usuario
   /// DELETE /usuarios/eliminarUsuario/{id}
   Future<void> eliminarUsuario(int idUsuario) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/eliminarUsuario/$idUsuario'),
-      headers: {
-      'Content-Type': 'application/json',
-    });
+    final response = await ApiClient.delete(Uri.parse('$baseUrl/eliminarUsuario/$idUsuario'));
 
     if (response.statusCode != 204) {
       if (response.statusCode == 404) {

@@ -31,7 +31,7 @@ class _CambiarContrasenaScreenState extends State<CambiarContrasenaScreen> {
 
   /// metodo para actualizar la contraseña en el API con la informacion obtenida del usuario
   Future<void> _actualizarContrasena() async {
-    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
+    final usuario = Provider.of<AuthProvider>(context, listen: false).usuario;
 
     if (!_formKey.currentState!.validate()) {
       return;

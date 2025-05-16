@@ -26,7 +26,8 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
     _initData = _cargarDatos();
   }
 
-  /// Recibe del service los grupos y horarios
+  /// Recibe del service los grupos y horarios y comprueba si teniamos un filtro de grupo
+  /// para utilizar la nueva instancia
   Future<void> _cargarDatos() async {
     final grupos   = await GrupoService().getGrupos();
     final horarios = await HorarioService.getHorarios();
@@ -34,6 +35,11 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
       _grupos   = grupos;
       _horarios = horarios;
     });
+    if (_filtroGrupo != null) {
+      final idAnterior = _filtroGrupo!.id;
+      final encontrados = _grupos.where((g) => g.id == idAnterior).toList();
+      _filtroGrupo = encontrados.isNotEmpty ? encontrados.first : null;
+    }
   }
 
   /// Calcula el color por el id recibido

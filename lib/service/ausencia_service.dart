@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:riber_republic_fichaje_app/model/ausencia.dart';
+import 'package:riber_republic_fichaje_app/utils/api_client.dart';
 import 'package:riber_republic_fichaje_app/utils/api_config.dart';
 
 /// Conecta el API de ausencias con la aplicacion de flutter
@@ -10,7 +10,7 @@ class AusenciaService {
   /// Obtiene todas las ausencias
   /// GET /ausencias/
   Future<List<Ausencia>> getAusencias() async {
-    final response = await http.get(Uri.parse('$baseUrl/'));
+    final response = await ApiClient.get(Uri.parse('$baseUrl/'));
 
     if (response.statusCode == 200) {
       final utf8Body = utf8.decode(response.bodyBytes);
@@ -26,7 +26,7 @@ class AusenciaService {
   static Future<bool> existeAusencia(int idUsuario, DateTime fecha) async {
     final iso = fecha.toIso8601String().split('T').first;
     final url = '$baseUrl/$idUsuario/existe?fecha=$iso';
-    final resp = await http.get(Uri.parse(url));
+    final resp = await ApiClient.get(Uri.parse(url));
     if (resp.statusCode == 200) {
       return jsonDecode(resp.body) as bool;
     }
@@ -36,9 +36,8 @@ class AusenciaService {
   /// Crea una nueva ausencia segun el id del usuario
   /// POST /ausencias/nuevaAusencia/{idUsuario}
   static Future<Ausencia> crearAusencia({required int idUsuario, required DateTime fecha, required Motivo motivo, String? detalles}) async {
-    final response = await http.post(
+    final response = await ApiClient.post(
       Uri.parse('$baseUrl/nuevaAusencia?idUsuario=$idUsuario'),
-      headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'fecha': fecha.toIso8601String(),
         'motivo': motivo.toString().split('.').last,
@@ -54,9 +53,8 @@ class AusenciaService {
   /// Edita la ausencia y dice si es justificada o no segun el estado de la ausencia
   /// POST /ausencias/editarAusencia/{idAusencia}}
   static Future<Ausencia> actualizarAusencia({required int idAusencia, required EstadoAusencia estado, String? detalles}) async {
-    final response = await http.put(
+    final response = await ApiClient.put(
       Uri.parse('$baseUrl/editarAusencia/$idAusencia'),
-      headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'estado': estado.toString().split('.').last,
         if (detalles != null) 'detalles': detalles,
@@ -73,9 +71,8 @@ class AusenciaService {
   /// Genera todas las ausencias posibles a partir de los fichajes
   /// POST /ausencias/generarAusencias
   static Future<void> generarAusencias() async {
-    final resp = await http.post(
+    final resp = await ApiClient.post(
       Uri.parse('$baseUrl/generarAusencias'),
-      headers: {'Content-Type': 'application/json'},
     );
     if (resp.statusCode != 204) {
       throw Exception(

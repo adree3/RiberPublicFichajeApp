@@ -20,17 +20,8 @@ class FichajeUtils {
       return sum;
     });
   }
-  static Duration calcularFichajesHoy2(List<Fichaje> fichajesHoy) {
-    final ahora = DateTime.now();
-    return fichajesHoy.fold(Duration.zero, (sum, f) {
-      final inicio = f.fechaHoraEntrada;
-      if (inicio == null) return sum;
 
-      final fin = f.fechaHoraSalida ?? ahora;
-      return sum + fin.difference(inicio);
-    });
-  }
-
+  /// Suma las horas totales por dia
   static Map<DateTime, Duration> sumarHorasPorDia(List<Fichaje> fichajes) {
     final Map<DateTime, Duration> totales = {};
     for (final f in fichajes) {

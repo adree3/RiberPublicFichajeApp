@@ -1,10 +1,10 @@
-import 'package:http/http.dart' as http;
-import 'package:riber_republic_fichaje_app/model/fichaje.dart';
 import 'dart:convert';
-
 import 'package:riber_republic_fichaje_app/model/totalHorasHoy.dart';
+import 'package:riber_republic_fichaje_app/utils/api_client.dart';
 import 'package:riber_republic_fichaje_app/utils/api_config.dart';
+import 'package:riber_republic_fichaje_app/model/fichaje.dart';
 
+/// Conecta el API de fichajes con la aplicacion de flutter
 class FichajeService {
   static String get _baseUrl => ApiConfig.baseUrl + '/fichajes';
 
@@ -12,7 +12,7 @@ class FichajeService {
   /// GET /fichajes/usuario/{idUsuario}
   static Future<List<Fichaje>> getFichajesPorUsuario(int idUsuario) async {
     final url = "$_baseUrl/usuario/$idUsuario";
-    final response = await http.get(Uri.parse(url));
+    final response = await ApiClient.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final utf8Body = utf8.decode(response.bodyBytes);
       final List<dynamic> jsonList = jsonDecode(utf8Body);
@@ -25,9 +25,7 @@ class FichajeService {
   /// GET /fichajes/totalHorasHoy/{idUsuario}
   static Future<TotalHorasHoy> getTotalHorasHoy(int idUsuario) async {
     final uri = Uri.parse("$_baseUrl/totalHorasHoy/$idUsuario");
-    final response = await http.get(uri, headers: {
-      'Content-Type': 'application/json',
-    });
+    final response = await ApiClient.get(uri);
     if (response.statusCode == 200) {
       return TotalHorasHoy.fromJson(jsonDecode(response.body));
     }
@@ -36,11 +34,8 @@ class FichajeService {
 
   /// POST /fichajes/abrirFichaje/{idUsuario}
   static Future<Fichaje>abrirFichaje(int idUsuario, {required bool nfcUsado, required String ubicacion}) async  {
-    final response = await http.post(
+    final response = await ApiClient.post(
       Uri.parse('$_baseUrl/abrirFichaje/$idUsuario'), 
-      headers: {
-      'Content-Type': 'application/json',
-      },
       body: jsonEncode({
         'nfcUsado': nfcUsado,
         'ubicacion': ubicacion,
@@ -54,11 +49,8 @@ class FichajeService {
 
   /// PUT /fichajes/cerrarFichaje/{idUsuario}
   static Future<Fichaje> cerrarFichaje({required int idUsuario, required bool nfcUsado}) async {
-    final response = await http.put(
-      Uri.parse('$_baseUrl/cerrarFichaje/$idUsuario?nfcUsado=$nfcUsado',), 
-      headers: {
-      'Content-Type': 'application/json',
-    });
+    final response = await ApiClient.put(
+      Uri.parse('$_baseUrl/cerrarFichaje/$idUsuario?nfcUsado=$nfcUsado'));
     if (response.statusCode == 200) {
       return Fichaje.fromJson(jsonDecode(response.body));
     } else if (response.statusCode == 404) {

@@ -17,6 +17,7 @@ class AdminDrawer extends StatelessWidget {
     required this.pantallas,
   });
 
+  /// Obtiene las iniciales del usuario para el circle avatar
   String _obtenerIniciales(usuario) {
     if (usuario == null) return '';
     final nombre = usuario.nombre;
@@ -28,7 +29,7 @@ class AdminDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
+    final usuario = Provider.of<AuthProvider>(context, listen: false).usuario;
     final iniciales = _obtenerIniciales(usuario);
 
     return Drawer(
@@ -69,8 +70,6 @@ class AdminDrawer extends StatelessWidget {
               ],
             ),
           ),
-
-          // Opciones de navegación
           Expanded(
             child: ListView.builder(
               padding: EdgeInsets.zero,
@@ -80,19 +79,14 @@ class AdminDrawer extends StatelessWidget {
                 final isSelected = i == selectedIndex;
                 return ListTile(
                   selected: isSelected,
-                  // Fondo cuando está seleccionado:
                   selectedTileColor: scheme.onPrimary,
-                  // Color de texto e icono cuando está seleccionado:
                   selectedColor: scheme.onSecondaryContainer,
-                  // Icono
                   leading: Icon(
                     (pantalla.icon as Icon).icon,
-                    // si no está seleccionado, usa este color
                     color: isSelected
                         ? scheme.onSecondaryContainer
                         : scheme.onPrimary,
                   ),
-                  // Texto
                   title: Text(
                     pantalla.label,
                     style: TextStyle(
@@ -207,18 +201,16 @@ class AdminDrawer extends StatelessWidget {
                   ],
                 ),
               );
-
+              // Si cierra sesion se elimina el usuario y el token de sharedPreferences
               if (confirmar == true) {
-                Provider.of<UsuarioProvider>(context, listen: false).cerrarSesion();
-
+                Provider.of<AuthProvider>(context, listen: false).cerrarSesion();
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.remove('usuario');
-
+                await prefs.remove('token');
                 Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
               }
             },
           ),
-
         ],
       ),
     );

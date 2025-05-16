@@ -11,10 +11,10 @@ class AdminUsuarioEditarDialog extends StatefulWidget {
   final OnUsuarioEdited onEdited;
 
   const AdminUsuarioEditarDialog({
-    Key? key,
+    super.key,
     required this.usuario,
     required this.onEdited,
-  }) : super(key: key);
+  });
 
   @override
   _AdminUsuarioEditarDialogState createState() =>
@@ -35,11 +35,12 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
 
   late Future<List<dynamic>> _futureData;
 
-  bool _mostrarContrasena = true; // Para el ojo
+  bool _mostrarContrasena = true;
   bool _loading = false;
   bool _checkingEmail = false;
   String? _emailError;
 
+  /// Al iniciar la pantalla, carga los datos del usuario a editar
   @override
   void initState() {
     super.initState();
@@ -51,13 +52,13 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
     _contraCtrl = TextEditingController();
     _rolSeleccionado = u.rol;
     _estadoSeleccionado = u.estado;
-    // Cargamos grupos y lista de usuarios para validar email
     _futureData = Future.wait([
       GrupoService().getGrupos(),
       UsuarioService().getUsuariosActivos(),
     ]);
   }
 
+  /// Si se va a destruir la pantalla, elimina los datos
   @override
   void dispose() {
     _nombreCtrl.dispose();
@@ -68,6 +69,7 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
     super.dispose();
   }
 
+  /// Inputdeoration para reutilizar codigo
   InputDecoration _inputDecoration(String label, IconData icon) {
     return InputDecoration(
       prefixIcon: Icon(icon),
@@ -78,10 +80,10 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
     );
   }
 
+  /// Comprueba el correo introducido
   Future<void> _comprobarCorreo(
       String email, List<Usuario> todosUsuarios) async {
     setState(() => _checkingEmail = true);
-    // excluimos el usuario que estamos editando
     final otros = todosUsuarios
         .where((u) => u.id != widget.usuario.id)
         .toList();
@@ -148,7 +150,6 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
         final grupos = snap.data![0] as List<Grupo>;
         final usuarios = snap.data![1] as List<Usuario>;
 
-        // preseleccionamos el grupo si no lo hemos hecho
         _grupoSeleccionado ??= grupos.firstWhere(
           (g) => g.id == widget.usuario.grupoId,
           orElse: () => grupos.first,
@@ -262,7 +263,6 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
                 ),
                 const SizedBox(height: 12),
 
-                // Grupo
                 DropdownButtonFormField<Grupo>(
                   value: _grupoSeleccionado,
                   decoration: _inputDecoration('Grupo', Icons.group),
@@ -275,7 +275,6 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
                 ),
                 const SizedBox(height: 12),
 
-                // Estado
                 DropdownButtonFormField<Estado>(
                   value: _estadoSeleccionado,
                   decoration:
@@ -289,7 +288,6 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
                 ),
                 const SizedBox(height: 24),
 
-                // Botón actualizar
                 Row(
                   children: [
                     Expanded(

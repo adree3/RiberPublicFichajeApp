@@ -1,9 +1,8 @@
-// lib/widgets/admin/responsive_scaffold.dart
-
 import 'package:flutter/material.dart';
 import 'package:riber_republic_fichaje_app/utils/tamanos.dart';
 import 'package:riber_republic_fichaje_app/widgets/admin/admin_drawer.dart';
 
+/// Adapta el scaffold, segun el tamaño de la pantalla
 class ResponsiveScaffold extends StatelessWidget {
   final Widget body;
   final List<NavigationDestination> pantallas;

@@ -1,15 +1,16 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:riber_republic_fichaje_app/utils/api_client.dart';
 import 'package:riber_republic_fichaje_app/model/grupo.dart';
 import 'package:riber_republic_fichaje_app/utils/api_config.dart';
 
+/// Conecta el API de grupos con la aplicacion de flutter
 class GrupoService {
   static String get baseUrl => ApiConfig.baseUrl + '/grupos';
 
   /// Obtiene todos los grupos
   /// GET /grupos/
   Future<List<Grupo>> getGrupos() async {
-    final response = await http.get(Uri.parse('$baseUrl/'));
+    final response = await ApiClient.get(Uri.parse('$baseUrl/'));
 
     if (response.statusCode == 200) {
       final utf8Body = utf8.decode(response.bodyBytes);
@@ -22,9 +23,8 @@ class GrupoService {
 
   /// POST /grupos/crearGrupo
   static Future<Grupo> crearGrupo({required String nombre, required List<int> usuariosIds}) async {
-    final response = await http.post(
+    final response = await ApiClient.post(
       Uri.parse('$baseUrl/crearGrupo'),
-      headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'nombre': nombre,
         'usuariosIds': usuariosIds,
@@ -39,9 +39,8 @@ class GrupoService {
   /// Actualiza un grupo y si se han asignado o desasignado usuarios al grupo también se actualiza
   /// PUT /grupos/editarGrupo/{id}
   static Future<Grupo> actualizarGrupo({required int id, required String nombre, required List<int> usuariosIds}) async {
-    final response = await http.put(
+    final response = await ApiClient.put(
       Uri.parse('$baseUrl/editarGrupo/$id'),
-      headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'nombre': nombre,
         'usuariosIds': usuariosIds,
@@ -56,10 +55,8 @@ class GrupoService {
   /// Eliminar el grupo recibido y re asigna los usuarios a "Sin Asingar"
   /// DELETE /grupos/eliminarGrupo/{id}
   static Future<bool> eliminarGrupo(int id) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/eliminarGrupo/$id'),
-      headers: {'Content-Type': 'application/json'},
-    );
+    final response = await ApiClient.delete(
+      Uri.parse('$baseUrl/eliminarGrupo/$id'));
     if (response.statusCode == 204) {
       return true;
     }

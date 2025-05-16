@@ -35,6 +35,11 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
       _grupos = grupos;
       _usuarios = usuarios;
     });
+    if (_filtrarGrupo != null) {
+      final oldId = _filtrarGrupo!.id;
+      final match = _grupos.where((g) => g.id == oldId);
+      _filtrarGrupo = match.isEmpty ? null : match.first;
+    }
   }
 
   /// Recarga llamando a recargar datos

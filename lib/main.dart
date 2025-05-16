@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:riber_republic_fichaje_app/model/loginResponse.dart';
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
 import 'package:riber_republic_fichaje_app/providers/tema_provider.dart';
 import 'package:riber_republic_fichaje_app/screens/admin/admin_home_screen.dart';
@@ -10,21 +11,22 @@ import 'package:riber_republic_fichaje_app/screens/user/home_screen.dart';
 import 'package:riber_republic_fichaje_app/screens/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/usuario_provider.dart';
-void main() async{
-  
-  WidgetsFlutterBinding.ensureInitialized();
-  final prefs = await SharedPreferences.getInstance();
-  final usuarioString = prefs.getString('usuario');
 
-  Usuario? usuarioGuardado;
-  if (usuarioString != null) {
-    final json = jsonDecode(usuarioString);
-    usuarioGuardado = Usuario.fromJson(json);
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final preferences = await SharedPreferences.getInstance();
+  final loginString = preferences.getString('usuario');
+
+  LoginResponse? loginGuardado;
+  if (loginString != null) {
+    loginGuardado = LoginResponse.fromJson(jsonDecode(loginString));
   }
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => UsuarioProvider()..setUsuario(usuarioGuardado)),
+        ChangeNotifierProvider(create: (_) => AuthProvider()..setUsuario(loginGuardado)),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: MyApp(),
@@ -37,12 +39,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final temaProv = Provider.of<ThemeProvider>(context);
-    final usuarioProv = context.watch<UsuarioProvider>().usuario;
+    final usuarioProv = context.watch<AuthProvider>().usuario;
 
     final initialRoute = usuarioProv == null
       ? '/'
       : (usuarioProv.rol == Rol.jefe ? '/admin_home' : '/home');
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: const ColorScheme.light(
@@ -90,9 +93,7 @@ class MyApp extends StatelessWidget {
         '/admin_home': (_) => const AdminHomeScreen(),
       },
       locale: const Locale('es', 'ES'),
-      supportedLocales: const [
-        Locale('es', 'ES'),
-      ],
+      supportedLocales: const [ Locale('es', 'ES') ],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

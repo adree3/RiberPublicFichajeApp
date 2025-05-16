@@ -31,22 +31,26 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     final email = '${_emailController.text.trim()}@educa.jcyl.es';
-    final usuario = await AuthService.login(email,_passController.text);
+    final authProvider = await AuthService.login(email,_passController.text, _guardarSesion);
 
     setState(() {
       _loading = false;
     });
 
-    if (usuario != null) {
-      final usuarioProvider = Provider.of<UsuarioProvider>(context, listen: false);
-      usuarioProvider.setUsuario(usuario);
+    if (authProvider != null) {
+      final usuarioProvider = context.read<AuthProvider>();
+      usuarioProvider.setUsuario(authProvider);
 
+      final prefs = await SharedPreferences.getInstance();
+      // guarda en sharedPreferences el token
+      await prefs.setString('token', authProvider.token);
       if (_guardarSesion) {
-        final prefs = await SharedPreferences.getInstance();
-        final usuarioJson = jsonEncode(usuario.toJson());
-        await prefs.setString('usuario', usuarioJson);
+        // si dan a guardar sesion se guarda el usuario en sharedPreferences
+        final authJson = jsonEncode(authProvider.toJson());
+        await prefs.setString('usuario', authJson);
       }
-      final esAdmin = usuario.rol == Rol.jefe;
+      
+      final esAdmin = authProvider.rol == Rol.jefe;
       final ruta = esAdmin
         ? '/admin_home'
         : '/home';

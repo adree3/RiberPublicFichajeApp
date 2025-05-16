@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final scheme = Theme.of(context).colorScheme;
 
     if (_currentIndex == 2) return null;
-    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
+    final usuario = Provider.of<AuthProvider>(context, listen: false).usuario;
     final iniciales = usuario != null
       ? '${usuario.nombre[0]}${usuario.apellido1[0]}'.toUpperCase()
       : '';
@@ -151,7 +151,7 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
   }
   /// Recibe del service los datos de horarios y fichajes
   Future<void> _cargaInicial() async {
-    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario!;
+    final usuario = Provider.of<AuthProvider>(context, listen: false).usuario!;
     final horario = await UsuarioService.getHorarioDeHoy(usuario.id);
     final fichajes = await FichajeService.getFichajesPorUsuario(usuario.id);
 
@@ -316,7 +316,7 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario!;
+    final usuario = Provider.of<AuthProvider>(context, listen: false).usuario!;
 
     super.build(context);
     return FutureBuilder<void>(
@@ -471,7 +471,7 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
 
   /// Crea el fichaje
   Future<void> _onFichajeCompletado(bool fichajeAbierto, bool nfcUsado) async {
-    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario!;
+    final usuario = Provider.of<AuthProvider>(context, listen: false).usuario!;
     if (!fichajeAbierto) {
       final fichaje = await FichajeService.abrirFichaje(
         usuario.id,

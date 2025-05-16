@@ -35,7 +35,7 @@ class FichajesScreenState extends State<FichajesScreen> {
 
   /// metodo para coger el usuario del provider y obtener tanto el horario de hoy, los fichajes del usuario como la ausencia de hoy.
   void __cargarUsuarioYFuturos() {
-    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
+    final usuario = Provider.of<AuthProvider>(context, listen: false).usuario;
     _idUsuario = usuario?.id;
     if (_idUsuario != null) {
       _horarioFuture  = UsuarioService.getHorarioDeHoy(_idUsuario!);
@@ -59,7 +59,7 @@ class FichajesScreenState extends State<FichajesScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
+    final usuario = Provider.of<AuthProvider>(context, listen: false).usuario;
     // si el usuario es null vuelve al login, para que se logge, 
     //utilizo esta forma ya que si utilizo el navigator.push directamente da un error de setState.
     if (usuario == null) {

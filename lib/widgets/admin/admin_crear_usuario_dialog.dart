@@ -15,7 +15,6 @@ class AdminUsuarioCrearDialogo extends StatefulWidget {
 }
 
 class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
-  // controladores para los textFormFields
   final _formKey = GlobalKey<FormState>();
   final _nombreCtrl = TextEditingController();
   final _apellido1Ctrl = TextEditingController();
@@ -56,7 +55,7 @@ class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
     super.dispose();
   }
 
-  /// Un InputDecoration para reciclar codigo
+  /// InputDecoration para reciclar codigo
   InputDecoration _inputDecoration(String label, IconData icon) {
     return InputDecoration(
       prefixIcon: Icon(icon),

@@ -16,34 +16,39 @@ class FichajeNfcScreen extends StatefulWidget {
 
 class _FichajeNfcScreenState extends State<FichajeNfcScreen> with SingleTickerProviderStateMixin {
   String _status = 'Acércate al NFC';
-  bool _scanning = false;
+  bool _escaneando = false;
   bool _resultReady = false;
   bool _ok = false;
-  late final AnimationController _animCtrl;
+  late final AnimationController _animacionCtrl;
 
+  /// Al iniciar la pantalla declara la animacion y llama a empezar
   @override
   void initState() {
     super.initState();
-    _animCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
-    _startSession();
+    _animacionCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    _empezar();
   }
 
+  /// Si se destruye la pantalla eliminar el animacionCtrl
   @override
   void dispose() {
-    _animCtrl.dispose();
+    _animacionCtrl.dispose();
     super.dispose();
   }
 
-  void _startSession() async {
-    if (_scanning) return;
-    _scanning = true;
+  /// Incia la lectura de NFC, comprueba que sea NFC y que el texto sea FICHAJE
+  void _empezar() async {
+    if (_escaneando) return;
+    _escaneando = true;
+    // Si el nfc no esta activado salta un mensaje
     if (!await NfcManager.instance.isAvailable()) {
       setState(() => _status = 'NFC no disponible');
       return;
     }
 
+    // Incia la antena NFC
     NfcManager.instance.startSession(onDiscovered: (tag) async {
-      String result = 'Error inesperado';
+      String resultado = 'Error inesperado';
       bool ok = false;
 
       try {
@@ -51,6 +56,7 @@ class _FichajeNfcScreenState extends State<FichajeNfcScreen> with SingleTickerPr
         if (ndef == null) throw Exception('No es NDEF');
         await ndef.read();
 
+        // Recorre los registros y extrae el texto del NFC
         for (var record in ndef.cachedMessage!.records) {
           if (record.typeNameFormat == NdefTypeNameFormat.nfcWellknown &&
               record.type.length == 1 &&
@@ -62,30 +68,33 @@ class _FichajeNfcScreenState extends State<FichajeNfcScreen> with SingleTickerPr
 
             if (text == 'FICHAJE') {
               ok = true;
-              result = '¡Tarjeta válida!';
+              resultado = '¡Tarjeta válida!';
             } else {
-              result = 'Tarjeta no válida: $text';
+              resultado = 'Tarjeta no válida: $text';
             }
             break;
           }
         }
       } catch (e) {
-        result = 'Error lectura: $e';
+        resultado = 'Error lectura: $e';
       } finally {
+        // Cierra el nfc
         await NfcManager.instance.stopSession();
-        _scanning = false;
+        _escaneando = false;
       }
 
       // Animación de entrada
       setState(() {
-        _status = result;
+        _status = resultado;
         _resultReady = true;
         _ok = ok;
       });
 
+      await _animacionCtrl.forward();
+      
+      // Al terminar espera 1 segundo para desaparecer y si coincide llama a onCompletar
       await Future.delayed(const Duration(seconds: 1));
       if (ok) widget.onCompletar(widget.trabajando);
-      // Cierra la pantalla tras mostrar el resultado
       Navigator.of(context).pop();
     });
   }
@@ -93,29 +102,34 @@ class _FichajeNfcScreenState extends State<FichajeNfcScreen> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final isResult = _status != 'Acércate al NFC' && _animCtrl.status == AnimationStatus.completed;
+    final isResult = _resultReady && _animacionCtrl.status == AnimationStatus.completed;
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: (){
+            Navigator.of(context).pop();
+          },
+          icon: const Icon(Icons.arrow_back, color: Colors.white)
+        ),
+      ),
+      extendBodyBehindAppBar: true,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Fondo
           Image.asset('assets/images/nfc_background.png', fit: BoxFit.cover),
-
-          // Capa semitransparente
           Container(color: Colors.black54),
-
-          // Contenido
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // indicador o imagen de resultado
                 if (!_resultReady)
                   SizedBox(
                     width: size.width * 0.4,
                     height: size.width * 0.4,
-                    child: CircularProgressIndicator(
+                    child: const CircularProgressIndicator(
                       strokeWidth: 8,
                       color: Colors.white70,
                     ),
@@ -129,8 +143,6 @@ class _FichajeNfcScreenState extends State<FichajeNfcScreen> with SingleTickerPr
                   ),
 
                 const SizedBox(height: 24),
-
-                // texto de estado
                 Text(
                   _status,
                   textAlign: TextAlign.center,
@@ -140,6 +152,20 @@ class _FichajeNfcScreenState extends State<FichajeNfcScreen> with SingleTickerPr
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                if (isResult) ...[
+                  const SizedBox(height: 32),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text('Volver'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white24,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
               ],
             ),
           ),

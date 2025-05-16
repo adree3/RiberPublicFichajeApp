@@ -6,7 +6,7 @@ import 'package:riber_republic_fichaje_app/screens/user/justificar_ausencia_scre
 
 class FichajeCard extends StatelessWidget {
   final Fichaje fichaje;
-  final HorarioHoy horarioHoy;
+  final HorarioHoy? horarioHoy;
   final Duration totalTrabajado; 
   final bool yaJustificado;
 
@@ -14,7 +14,7 @@ class FichajeCard extends StatelessWidget {
   const FichajeCard({
     super.key,
     required this.fichaje,
-    required this.horarioHoy,
+    this.horarioHoy,
     required this.totalTrabajado,
     required this.yaJustificado,
   });
@@ -24,7 +24,6 @@ class FichajeCard extends StatelessWidget {
 
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    // Día y fecha
     final DateTime? dia = fichaje.fechaHoraEntrada ?? fichaje.fechaHoraSalida;
     final String nombreDia = dia != null
         ? _getDiaSemana(dia.weekday)
@@ -35,7 +34,7 @@ class FichajeCard extends StatelessWidget {
 
     // Color y texto según totalTrabajado vs horas estimadas
     final bool sinTrabajo = totalTrabajado == Duration.zero;
-    final bool porDebajo = !sinTrabajo && totalTrabajado < horarioHoy.horasEstimadas;
+    final bool porDebajo = !sinTrabajo && totalTrabajado < horarioHoy!.horasEstimadas;
 
     final colorEstimadas = scheme.secondary;
     final colorTrabajadas = sinTrabajo || porDebajo ? scheme.error : scheme.primary;
@@ -86,7 +85,6 @@ class FichajeCard extends StatelessWidget {
                   ? null
                   : () async {
                       if (dia == null) return;
-                      // 1) Navegas y esperas a que cierre la pantalla de justificar
                       await Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => JustificarAusenciaScreen(
@@ -105,16 +103,14 @@ class FichajeCard extends StatelessWidget {
           ),
           const Divider(height: 20, thickness: 1),
 
-          // Horas estimadas
           Text("Horas estimadas:", style: textTheme.bodySmall,),
           Text(
-            _formateaDuracion(horarioHoy.horasEstimadas),
+            _formateaDuracion(horarioHoy!.horasEstimadas),
             style: textTheme.bodyMedium!
               .copyWith(color: colorEstimadas, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 3),
 
-          // Total horas hoy
           const Text("Horas trabajadas:", style: TextStyle(fontSize: 15)),
           Text(
             textoTrabajadas,

@@ -20,7 +20,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   @override
   Widget build(BuildContext context) {
     final temaProv = Provider.of<ThemeProvider>(context);
-    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
+    final usuario = Provider.of<AuthProvider>(context, listen: false).usuario;
     final scheme  = Theme.of(context).colorScheme;
     final textTheme  = Theme.of(context).textTheme;
     final iniciales = usuario != null
@@ -235,7 +235,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                         );
 
                         if (confirmar == true) {
-                          Provider.of<UsuarioProvider>(context, listen: false).cerrarSesion();
+                          Provider.of<AuthProvider>(context, listen: false).cerrarSesion();
                           final prefs = await SharedPreferences.getInstance();
                           await prefs.remove('usuario');
                           Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
