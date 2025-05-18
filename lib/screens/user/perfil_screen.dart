@@ -83,7 +83,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    usuario!.email,
+                    usuario.email,
                     style: textTheme.titleMedium!
                         .copyWith(fontWeight: FontWeight.bold, color: scheme.primary),
                   ),
