@@ -134,7 +134,7 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
                       .toList()
                     ..sort((a, b) {
                       // Se ordena la lista de lunes a viernes
-                      final diaOrden = ['lunes','martes','miercoles','jueves','viernes'];
+                      final diaOrden = ['lunes','martes','miercoles','jueves','viernes', 'sabado', 'domingo'];
                       final da = diaOrden.indexOf(a.dia.name);
                       final db = diaOrden.indexOf(b.dia.name);
                       if (da != db) return da.compareTo(db);

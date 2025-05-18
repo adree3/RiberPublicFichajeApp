@@ -99,7 +99,6 @@ class ExcelExporter {
         celda.cellStyle = estiloCabecera;
         hoja.setColAutoFit(col);
       }
-
       // Recorre los usuarios y va rellenando las celdas se pinta la sigueinte fila 
       // por el indice del for 
       for (var i = 0; i < usuariosFiltrados.length; i++) {
@@ -108,7 +107,6 @@ class ExcelExporter {
         final ausenciasNoAceptadas = ausencias
           .where((a) => a.usuario.id == usuario.id && a.estado != EstadoAusencia.aceptada)
           .length;
-
         final fila = [
           i + 1,
           usuario.nombre,
@@ -128,7 +126,6 @@ class ExcelExporter {
           celda.cellStyle = estiloCuerpo;
         }
       }
-
       // Convierte todo lo que hemos pintado en un array de bytes
       final bytes = excel.encode();
       if (bytes == null) throw Exception('Error codificando Excel');

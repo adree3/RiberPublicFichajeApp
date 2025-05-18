@@ -49,8 +49,8 @@ class ApiClient {
     return response;
   }
 
-  /// Comprueba si da el error 401 o 403, en caso de que de elimina el token 
-  /// y el usuario del sharedPreferences, cierra sesion y se redirige al login
+  /// Comprueba si da el error 401 o 403 para la expiración del token, en ese caso, se elimina 
+  /// el token y el usuario del sharedPreferences, cierra sesion y se redirige al login
   static Future<void> _error401(http.Response resp) async {
     if (resp.statusCode == 401 || resp.statusCode == 403) {
       final prefs = await SharedPreferences.getInstance();

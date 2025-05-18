@@ -95,7 +95,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30.0),                  child: Form(
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),                 
+                  child: Form(
                   key: _formKey,
                   child: Column(
                     children: [

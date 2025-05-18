@@ -75,4 +75,6 @@ enum Dia {
   miercoles,
   jueves,
   viernes,
+  sabado,
+  domingo
 }
