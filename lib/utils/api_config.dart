@@ -3,9 +3,11 @@ import 'dart:io' show Platform;
 class ApiConfig {
   static String get host {
     if (Platform.isAndroid) {
-      //return '10.0.2.2';
-      //return '192.168.146.182';
-      return '192.168.78.220';
+      // En caso de estar ejecutando la aplicacion en un dispositivo Android,
+      // se tiene que usar el mismo WIFI tanto para el dispositivo que ejecute 
+      // el API como el del dispositivo Android y hay que configurar la ip 
+      // del host según la del dispositivo que corra el API aquí:
+      return '192.168.48.182';
     } else {
       return 'localhost';
     }
