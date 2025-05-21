@@ -5,12 +5,12 @@ RiberRepublicFichaje es una aplicación multiplataforma para el control horario 
 
 - **App móvil** en Flutter/Dart  
 - **API REST** en Spring Boot/Java  
-- Integración **NFC** para fichajes rápidos  
+- Integración **NFC** para fichajes
 - **Gestión** de usuarios, grupos, horarios y ausencias  
 - Exportación de informes en **Excel**  
 
 ### 🎯 **Objetivo principal**  
-Mejorar la gestión del tiempo de trabajo, automatizar el registro de entradas/salidas con NFC y centralizar la información en un servicio seguro y fácil de usar.
+Mejorar la gestión del tiempo de trabajo, implementando el registro de entradas/salidas con NFC.
 
 ### ⚙️ **Funcionalidades Principales**  
 ✅ **Fichajes NFC**  
