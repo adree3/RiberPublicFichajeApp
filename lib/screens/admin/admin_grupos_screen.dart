@@ -53,15 +53,23 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
       Colors.primaries[id % Colors.primaries.length];
 
   /// Filtra los grupos para el dropdownbutton
-  List<Grupo> get _gruposFiltrados {
-    if (_filtroGrupo == null) return _grupos;
-    return _grupos.where((g) => g.id == _filtroGrupo!.id).toList();
+   List<Grupo> get _gruposFiltrados {
+    if (_filtroGrupo != null) {
+      return [_filtroGrupo!];
+    }
+    final sinAsignar = _grupos.firstWhere((g) => g.nombre == 'Sin Asignar');
+    final otros = _grupos.where((g) => g.nombre != 'Sin Asignar').toList();
+    otros.add(sinAsignar);
+    return otros;
   }
+
   /// Dialogo para exportar los grupos a Excel
   void _mostrarDialogoExportar() {
     Grupo? grupoSeleccionado;
     final scheme = Theme.of(context).colorScheme;
-
+    final gruposConUsuarios = _grupos.where((g) =>
+      _usuarios.any((u) => u.grupoId == g.id)
+    ).toList();
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -80,7 +88,7 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
                   value: grupoSeleccionado,
                   items: [
                     const DropdownMenuItem(value: null, child: Text('—')),
-                    ..._grupos.map((g) => DropdownMenuItem(value: g, child: Text(g.nombre))),
+                    ...gruposConUsuarios.map((g) => DropdownMenuItem(value: g, child: Text(g.nombre))),
                   ],
                   onChanged: (g) => setDialog(() => grupoSeleccionado = g),
                 ),

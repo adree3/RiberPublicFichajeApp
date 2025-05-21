@@ -3,6 +3,7 @@ import 'package:riber_republic_fichaje_app/model/horarioHoy.dart';
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
 import 'package:riber_republic_fichaje_app/utils/api_config.dart';
 import 'package:riber_republic_fichaje_app/utils/api_client.dart';
+import 'package:riber_republic_fichaje_app/utils/excepciones/credenciales_invalidas.dart';
 
 /// Conecta el API de usuarios con la aplicacion de flutter
 class UsuarioService {
@@ -83,9 +84,16 @@ class UsuarioService {
         'nuevaContrasena' : nuevaContrasena,
       }),
     );
-    if (response.statusCode != 200) {
-      throw Exception('Error al cambiar contraseña (${response.statusCode}): ${response.body}');
+    if (response.statusCode == 200) {
+      return;
     }
+    // Error de contraseña invalida
+    if (response.statusCode==400){
+      final errorData = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      final mensaje = errorData['message'] as String? ??'Contraseña incorrecta';
+      throw CredenciaslesInvalidasException(mensaje);
+    }
+    throw Exception('Error al cambiar contraseña (${response.statusCode}): ${response.body}');
   }
 
   /// Edita un usuario

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:riber_republic_fichaje_app/providers/usuario_provider.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
+import 'package:riber_republic_fichaje_app/utils/excepciones/credenciales_invalidas.dart';
 
 class CambiarContrasenaScreen extends StatefulWidget {
   const CambiarContrasenaScreen({super.key});
@@ -12,6 +13,7 @@ class CambiarContrasenaScreen extends StatefulWidget {
 
 class _CambiarContrasenaScreenState extends State<CambiarContrasenaScreen> {
   final _formKey = GlobalKey<FormState>();
+  String? _errorContrasenaActual;
   final _contrasenaActual = TextEditingController();
   final _nuevaContrasena = TextEditingController();
   final _confimarContrasena = TextEditingController();
@@ -46,6 +48,10 @@ class _CambiarContrasenaScreenState extends State<CambiarContrasenaScreen> {
         const SnackBar(content: Text('Contraseña actualizada'))
       );
       Navigator.of(context).pop();
+    } on CredenciaslesInvalidasException catch (e){
+      setState(() {
+        _errorContrasenaActual = e.message;
+       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}'))
@@ -80,6 +86,7 @@ class _CambiarContrasenaScreenState extends State<CambiarContrasenaScreen> {
                 controller: _contrasenaActual,
                 decoration: InputDecoration(
                   labelText: 'Contraseña actual',
+                  errorText: _errorContrasenaActual,
                   prefixIcon: const Icon(Icons.lock_outline),
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(

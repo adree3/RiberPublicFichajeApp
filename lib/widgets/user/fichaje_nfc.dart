@@ -70,13 +70,13 @@ class _FichajeNfcScreenState extends State<FichajeNfcScreen> with SingleTickerPr
               ok = true;
               resultado = '¡Tarjeta válida!';
             } else {
-              resultado = 'Tarjeta no válida: $text';
+              resultado = 'Tarjeta no válida';
             }
             break;
           }
         }
       } catch (e) {
-        resultado = 'Error lectura: $e';
+        resultado = 'Tarjeta no válida';
       } finally {
         // Cierra el nfc
         await NfcManager.instance.stopSession();

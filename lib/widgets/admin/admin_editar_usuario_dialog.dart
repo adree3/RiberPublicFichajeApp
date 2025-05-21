@@ -37,7 +37,7 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
 
   bool _mostrarContrasena = true;
   bool _loading = false;
-  bool _checkingEmail = false;
+  bool _comprobandoCorreo = false;
   String? _emailError;
 
   /// Al iniciar la pantalla, carga los datos del usuario a editar
@@ -48,7 +48,10 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
     _nombreCtrl = TextEditingController(text: u.nombre);
     _apellido1Ctrl = TextEditingController(text: u.apellido1);
     _apellido2Ctrl = TextEditingController(text: u.apellido2 ?? '');
-    _emailCtrl = TextEditingController(text: u.email);
+
+    final correo = u.email.split('@');
+    final nombreCorreo= correo.isNotEmpty ? correo.first: "";
+    _emailCtrl = TextEditingController(text: nombreCorreo);
     _contraCtrl = TextEditingController();
     _rolSeleccionado = u.rol;
     _estadoSeleccionado = u.estado;
@@ -81,17 +84,16 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
   }
 
   /// Comprueba el correo introducido
-  Future<void> _comprobarCorreo(
-      String email, List<Usuario> todosUsuarios) async {
-    setState(() => _checkingEmail = true);
+  Future<void> _comprobarCorreo(String email, List<Usuario> todosUsuarios) async {
+    setState(() => _comprobandoCorreo = true);
+    final correo = '${email.trim().toLowerCase()}@educa.jcyl.es';
     final otros = todosUsuarios
         .where((u) => u.id != widget.usuario.id)
         .toList();
-    final enUso = otros.any(
-        (u) => u.email.toLowerCase() == email.toLowerCase().trim());
+    final enUso = otros.any((u) => u.email.toLowerCase() == correo);
     setState(() {
       _emailError = enUso ? 'Este correo ya está registrado' : null;
-      _checkingEmail = false;
+      _comprobandoCorreo = false;
     });
     _formKey.currentState?.validate();
   }
@@ -100,14 +102,17 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
   /// para editar, no quiero que se envie.
   Future<void> _editarUsuario(int grupoId) async {
     setState(() => _loading = true);
+      final nombreCorreo = _emailCtrl.text.trim();
+      final correo = '$nombreCorreo@educa.jcyl.es';
     try {
+      
       final usuarioEditar = <String, dynamic>{
         'nombre': _nombreCtrl.text.trim(),
         'apellido1': _apellido1Ctrl.text.trim(),
         'apellido2': _apellido2Ctrl.text.trim().isEmpty
             ? null
             : _apellido2Ctrl.text.trim(),
-        'email': _emailCtrl.text.trim(),
+        'email': correo,
         'rol': _rolSeleccionado!.name,
         'estado': _estadoSeleccionado!.name,
       };
@@ -190,7 +195,8 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
                 TextFormField(
                   controller: _emailCtrl,
                   decoration: _inputDecoration('Email', Icons.email).copyWith(
-                    suffixIcon: _checkingEmail
+                    suffixText: '@educa.jcyl.es',
+                    suffixIcon: _comprobandoCorreo
                     ? const SizedBox(
                         width: 20,
                         height: 20,
