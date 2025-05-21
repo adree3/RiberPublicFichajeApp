@@ -1,5 +1,8 @@
 # 🚀 **RIBER REPUBLIC FICHAJE (APP)**
 
+## 🔗 Repositorio al API
+- [API RiberPublicFichaje](https://github.com/tuUsuario/RiberRepublicFichajeApi)
+
 ## 📦 **Descripción del Proyecto**  
 RiberRepublicFichaje es una aplicación multiplataforma para el control horario en RiberRepublic. Incluye:
 
@@ -9,10 +12,10 @@ RiberRepublicFichaje es una aplicación multiplataforma para el control horario 
 - **Gestión** de usuarios, grupos, horarios y ausencias  
 - Exportación de informes en **Excel**  
 
-### 🎯 **Objetivo principal**  
+## 🎯 **Objetivo principal**  
 Mejorar la gestión del tiempo de trabajo, implementando el registro de entradas/salidas con NFC.
 
-### ⚙️ **Funcionalidades Principales**  
+## ⚙️ **Funcionalidades Principales**  
 ✅ **Fichajes NFC**  
 ✅ **Gestión de Usuarios y Grupos**  
 ✅ **Control de Ausencias** (vacaciones, permisos, retrasos)  
@@ -20,25 +23,25 @@ Mejorar la gestión del tiempo de trabajo, implementando el registro de entradas
 ✅ **Paneles de Administración** para empleados y jefes  
 ✅ **Exportación a Excel** de datos de grupos, usuarios y ausencias  
 
-### 🧱 **Tecnologías Utilizadas**  
-#### 🔹 **Frontend (App Flutter)**  
+## 🧱 **Tecnologías Utilizadas**  
+### 🔹 **Frontend (App Flutter)**  
 - Flutter & Dart
 - Figma (para el diseño)
 - NFC_Tools (para escribir las tarjetas NFC)
 - DartDOC
 
-#### 🔹 **Backend (API Spring Boot)**  
+### 🔹 **Backend (API Spring Boot)**  
 - Java 17, Spring Boot, Spring Security  
 - JWT para autenticación  
 - Spring Data JPA con MySQL  
 - Springdoc OpenAPI (Swagger UI)
 - JavaDOC
 
-### 🔗 **Documentación**  
+## 🔗 **Documentación**  
 📄 [Memoria del Proyecto (PDF)](Alonso_Perez_Adrian_Memoria_ProyectoFinal_DAM25.pdf)
 📖 [Manual de Usuario (PDF)](Alonso_Perez_Adrian_Manual_ProyectoFinal_DAM25.pdf)
 
-### 📌 **Conclusión**  
+## 📌 **Conclusión**  
 RiberRepublicFichaje ofrece una solución integral, segura y escalable para el control horario, combinando una experiencia de usuario fluida en Flutter con una API robusta en Spring Boot, y aportando datos y reportes que facilitan la gestión del personal.
 
 ---
