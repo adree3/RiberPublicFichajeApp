@@ -7,7 +7,7 @@ class ApiConfig {
       // se tiene que usar el mismo WIFI tanto para el dispositivo que ejecute 
       // el API como el del dispositivo Android y hay que configurar la ip 
       // del host según la del dispositivo que corra el API aquí:
-      return '192.168.48.182';
+      return '192.168.62.182';
     } else {
       return 'localhost';
     }

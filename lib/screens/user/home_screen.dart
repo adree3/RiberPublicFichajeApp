@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:riber_republic_fichaje_app/model/fichaje.dart';
 import 'package:riber_republic_fichaje_app/model/horarioHoy.dart';
@@ -11,6 +13,7 @@ import 'package:riber_republic_fichaje_app/screens/user/fichajes_screen.dart';
 import 'package:riber_republic_fichaje_app/service/fichaje_service.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
 import 'package:riber_republic_fichaje_app/utils/fichajeUtils.dart';
+import 'package:riber_republic_fichaje_app/utils/geolocalizacion.dart';
 import 'package:riber_republic_fichaje_app/widgets/user/fichaje_nfc.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -193,6 +196,12 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
     super.dispose();
   }
 
+  Future<Position> _obtenerPosicion() async {
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+  }
+
   /// ModalBottom para selecionar si quieres fichar con o sin nfc
   void _mostrarOpcionesFichaje(ColorScheme scheme) {
     showModalBottomSheet(
@@ -211,8 +220,26 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
               ListTile(
                 leading: Icon(Icons.nfc, color: scheme.primary),
                 title: const Text('Con NFC'),
-                onTap: () {
+                onTap: ()async {
                   Navigator.pop(context);
+                  
+                  Position posicion;
+                  try{
+                    posicion = await _obtenerPosicion();
+                  }catch (e){
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Error al obtener ubicación'))
+                    );
+                    return;
+                  }
+
+                  final distancia = calcularDistancia(GeofenceConfiguracion.latitude, GeofenceConfiguracion.longitud, posicion.latitude, posicion.longitude);
+                  if (distancia > GeofenceConfiguracion.radioMetros) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Estás fuera del área de fichaje'))
+                    );
+                    return;
+                  }
                   // Navega a pantalla NFC y decide abrir/cerrar allí:
                   Navigator.push(context, MaterialPageRoute(
                     builder: (_) => FichajeNfcScreen(
@@ -227,6 +254,24 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
                 title: const Text('Sin NFC'),
                 onTap: () async {
                   Navigator.pop(context);
+
+                  Position posicion;
+                  try{
+                    posicion = await _obtenerPosicion();
+                  }catch (e){
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Error al obtener ubicación'))
+                    );
+                    return;
+                  }
+
+                  final distancia = calcularDistancia(GeofenceConfiguracion.latitude, GeofenceConfiguracion.longitud, posicion.latitude, posicion.longitude);
+                  if (distancia > GeofenceConfiguracion.radioMetros) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Estás fuera del área del instituto'))
+                    );
+                    return;
+                  }
                   final confirmar = await showDialog<bool>(
                     context: context,
                     builder: (ctx) => AlertDialog(
@@ -438,7 +483,23 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed:() => _mostrarOpcionesFichaje(scheme),
+                    onPressed:() async{
+                      final status = await Permission.location.request();
+                      if (status.isGranted) {
+                        _mostrarOpcionesFichaje(scheme);
+                      }
+                      else if (status.isPermanentlyDenied) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Activa ubicación en ajustes'))
+                        );
+                        await openAppSettings();
+                      }
+                      else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Para fichar, es necesaria la ubicación'))
+                        );
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 25),
                       shape: RoundedRectangleBorder(

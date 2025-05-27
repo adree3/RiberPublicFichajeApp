@@ -44,4 +44,4 @@ Mejorar la gestión del tiempo de trabajo, implementando el registro de entradas
 ## 📌 **Conclusión**  
 RiberRepublicFichaje ofrece una solución integral, segura y escalable para el control horario, combinando una experiencia de usuario fluida en Flutter con una API robusta en Spring Boot, y aportando datos y reportes que facilitan la gestión del personal.
 
----
+

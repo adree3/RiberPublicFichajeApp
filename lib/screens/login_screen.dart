@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
   bool _guardarSesion = false;
   bool _mostrarContrasena = true;
+  bool _timeoutError = false;
 
   /// Hace una peticion al service para comprobar el usuario y contraseña
   void _login(BuildContext context) async {
@@ -28,38 +30,38 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() {
       _loading = true;
+      _timeoutError = false;
     });
 
-    final email = '${_emailController.text.trim()}@educa.jcyl.es';
-    final authProvider = await AuthService.login(email,_passController.text, _guardarSesion);
-
-    setState(() {
-      _loading = false;
-    });
-
-    if (authProvider != null) {
+    try{
+      final authProvider = await AuthService.login('${_emailController.text.trim()}@educa.jcyl.es',
+             _passController.text, _guardarSesion).timeout(const Duration(seconds: 5));
+      if (authProvider == null) throw Exception('Credenciales inválidas');
       final usuarioProvider = context.read<AuthProvider>();
       usuarioProvider.setUsuario(authProvider);
-
       final prefs = await SharedPreferences.getInstance();
-      // guarda en sharedPreferences el token
       await prefs.setString('token', authProvider.token);
       if (_guardarSesion) {
-        // si dan a guardar sesion se guarda el usuario en sharedPreferences
-        final authJson = jsonEncode(authProvider.toJson());
-        await prefs.setString('usuario', authJson);
+        await prefs.setString('usuario', jsonEncode(authProvider.toJson()));
       }
-      
-      final esAdmin = authProvider.rol == Rol.jefe;
-      final ruta = esAdmin
-        ? '/admin_home'
-        : '/home';
-
+      final ruta = authProvider.rol == Rol.jefe ? '/admin_home' : '/home';
       Navigator.pushReplacementNamed(context, ruta);
-    } else {
+
+    } on TimeoutException {
+      setState(() {
+        _loading = false;
+        _timeoutError = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('La conexión tardó demasiado.'))
+      );
+    } catch (e) {
+      setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Credenciales incorrectas"), 
+          content: Text(e is Exception && e.toString().contains('Credenciales')
+            ? 'Credenciales incorrectas'
+            : 'Error al conectar: $e'),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -163,24 +165,38 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        _loading
-                        ? CircularProgressIndicator(color: scheme.primary)
-                        : SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: () => _login(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: scheme.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                        if (_loading) ...[
+                          CircularProgressIndicator(color: scheme.primary)
+                        ] else if (_timeoutError) ...[
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() => _timeoutError = false);
+                                _login(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: scheme.secondary,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
+                              child: const Text('Reintentar'),
                             ),
-                            child: Text( "INICIAR SESIÓN",
-                              style: TextStyle(color: scheme.onPrimary)
+                          )
+                        ] else ...[
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: () => _login(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: scheme.primary,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              child: Text('INICIAR SESIÓN', style: TextStyle(color: scheme.onPrimary)),
                             ),
-                          ),
-                        )
+                          )
+                        ]
                       ],
                     ),
                   ),

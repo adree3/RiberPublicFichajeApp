@@ -1,0 +1,2 @@
+C:/RiberRepublicTFG/riber_republic_fichaje_app/android/app/.cxx/RelWithDebInfo/1gvw2t27/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/RiberRepublicTFG/riber_republic_fichaje_app/android/app/.cxx/RelWithDebInfo/1gvw2t27/armeabi-v7a/CMakeFiles/rebuild_cache.dir
