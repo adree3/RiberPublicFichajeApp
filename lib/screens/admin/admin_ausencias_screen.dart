@@ -3,6 +3,7 @@
   import 'package:riber_republic_fichaje_app/model/usuario.dart';
   import 'package:riber_republic_fichaje_app/service/ausencia_service.dart';
   import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
+import 'package:riber_republic_fichaje_app/widgets/snackbar.dart';
 
 class AdminAusenciasScreen extends StatefulWidget {
   const AdminAusenciasScreen({super.key});
@@ -29,12 +30,13 @@ class AdminAusenciasScreenState extends State<AdminAusenciasScreen> {
   /// su usuario este activo)
   Future<void> _cargarDatos() async {
     final ausencias = await AusenciaService().getAusencias();
-    final usuarios = await UsuarioService().getUsuariosActivos();
+    final usuarios = await UsuarioService().getEmpleadosActivos();
     setState(() {
       _usuarios = usuarios;
       _ausencias = ausencias
         .where((a) => usuarios.any((u) => u.id == a.usuario.id))
-        .toList();
+        .toList()
+        ..sort((a,b)=> b.fecha.compareTo(a.fecha));
     });
   }
 
@@ -232,21 +234,23 @@ class AdminAusenciasScreenState extends State<AdminAusenciasScreen> {
                                         estado: nuevoEstado,
                                         detalles: ausencia.detalles,
                                       );
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                              'Estado actualizado'),
-                                        ),
+                                      AppSnackBar.show(
+                                        context,
+                                        message: 'Estado actualizado correctamente',
+                                        backgroundColor: Colors.green.shade600,
+                                        icon: Icons.check_circle,
                                       );
+
                                     } catch (e) {
                                       setState(() {
                                         ausencia.estado = viejo;
                                         ausencia.justificada =(viejo == EstadoAusencia.aceptada);
                                       });
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Error al actualizar estado'),
-                                        ),
+                                      AppSnackBar.show(
+                                        context,
+                                        message: 'Error al actualizar el estado',
+                                        backgroundColor: Colors.red.shade700,
+                                        icon: Icons.error_outline,
                                       );
                                     }
                                   },

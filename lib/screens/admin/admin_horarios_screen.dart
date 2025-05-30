@@ -3,6 +3,7 @@ import 'package:riber_republic_fichaje_app/model/grupo.dart';
 import 'package:riber_republic_fichaje_app/model/horario.dart';
 import 'package:riber_republic_fichaje_app/service/grupo_service.dart';
 import 'package:riber_republic_fichaje_app/service/horario_service.dart';
+import 'package:riber_republic_fichaje_app/widgets/snackbar.dart';
 
 class AdminHorariosScreen extends StatefulWidget {
   const AdminHorariosScreen({super.key});
@@ -215,8 +216,11 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
                                     if (confirmar == true) {
                                       await HorarioService.eliminarHorario(horario.id);
                                       await _cargarDatos();
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Horario eliminado')),
+                                      AppSnackBar.show(
+                                        context,
+                                        message: 'Horario eliminado',
+                                        backgroundColor: Colors.green.shade600,
+                                        icon: Icons.check_circle,
                                       );
                                     }
                                   },
@@ -412,12 +416,18 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
           grupoId: nuevoHorario.grupoId
         );
         await _cargarDatos();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Horario actualizado')),
+        AppSnackBar.show(
+          context,
+          message: 'Horario actualizado',
+          backgroundColor: Colors.green.shade600,
+          icon: Icons.check_circle,
         );
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al actualizar: $e')),
+        AppSnackBar.show(
+          context,
+          message: 'Error al actualizar el horario',
+          backgroundColor: Colors.red.shade600,
+          icon: Icons.error_outline,
         );
       }
     }
@@ -652,12 +662,18 @@ class AdminHorariosScreenState extends State<AdminHorariosScreen> {
                                   );
                                   Navigator.pop(dctx);
                                   await _cargarDatos();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Horario creado')),
+                                  AppSnackBar.show(
+                                    context,
+                                    message: 'Horario creado',
+                                    backgroundColor: Colors.green.shade600,
+                                    icon: Icons.check_circle,
                                   );
                                 } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Error al crear horario: $e')),
+                                  AppSnackBar.show(
+                                    context,
+                                    message: 'Error al crear el horario',
+                                    backgroundColor: Colors.red.shade600,
+                                    icon: Icons.error_outline,
                                   );
                                 }
                               },

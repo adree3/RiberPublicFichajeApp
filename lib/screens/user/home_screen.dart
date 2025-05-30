@@ -14,6 +14,7 @@ import 'package:riber_republic_fichaje_app/service/fichaje_service.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
 import 'package:riber_republic_fichaje_app/utils/fichajeUtils.dart';
 import 'package:riber_republic_fichaje_app/utils/geolocalizacion.dart';
+import 'package:riber_republic_fichaje_app/widgets/snackbar.dart';
 import 'package:riber_republic_fichaje_app/widgets/user/fichaje_nfc.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -227,16 +228,22 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
                   try{
                     posicion = await _obtenerPosicion();
                   }catch (e){
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Error al obtener ubicación'))
+                    AppSnackBar.show(
+                      context,
+                      message: 'Error al obtener la ubicación',
+                      backgroundColor: Colors.red.shade600,
+                      icon: Icons.error_outline,
                     );
                     return;
                   }
 
                   final distancia = calcularDistancia(GeofenceConfiguracion.latitude, GeofenceConfiguracion.longitud, posicion.latitude, posicion.longitude);
                   if (distancia > GeofenceConfiguracion.radioMetros) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Estás fuera del área de fichaje'))
+                    AppSnackBar.show(
+                      context,
+                      message: 'Solo puedes fichar en el instituto',
+                      backgroundColor: Colors.red.shade600,
+                      icon: Icons.error_outline,
                     );
                     return;
                   }
@@ -259,16 +266,22 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
                   try{
                     posicion = await _obtenerPosicion();
                   }catch (e){
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Error al obtener ubicación'))
+                    AppSnackBar.show(
+                      context,
+                      message: 'Error al obtener la ubicación',
+                      backgroundColor: Colors.red.shade600,
+                      icon: Icons.error_outline,
                     );
                     return;
                   }
 
                   final distancia = calcularDistancia(GeofenceConfiguracion.latitude, GeofenceConfiguracion.longitud, posicion.latitude, posicion.longitude);
                   if (distancia > GeofenceConfiguracion.radioMetros) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Estás fuera del área del instituto'))
+                    AppSnackBar.show(
+                      context,
+                      message: 'Solo puedes fichar en el instituto',
+                      backgroundColor: Colors.red.shade600,
+                      icon: Icons.error_outline,
                     );
                     return;
                   }
@@ -489,14 +502,20 @@ class _HomeContentState extends State<HomeContent>  with AutomaticKeepAliveClien
                         _mostrarOpcionesFichaje(scheme);
                       }
                       else if (status.isPermanentlyDenied) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Activa ubicación en ajustes'))
+                        AppSnackBar.show(
+                          context,
+                          message: 'Activa la ubicación en los ajustes',
+                          backgroundColor: Colors.red.shade600,
+                          icon: Icons.error_outline,
                         );
                         await openAppSettings();
                       }
                       else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Para fichar, es necesaria la ubicación'))
+                        AppSnackBar.show(
+                          context,
+                          message: 'Para fichar es necesaria la ubicación en el dispositivo',
+                          backgroundColor: Colors.red.shade600,
+                          icon: Icons.error_outline,
                         );
                       }
                     },

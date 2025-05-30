@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:riber_republic_fichaje_app/model/ausencia.dart';
 import 'package:riber_republic_fichaje_app/model/grupo.dart';
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
+import 'package:riber_republic_fichaje_app/widgets/snackbar.dart';
 
 class ExcelExporter {
 
@@ -18,7 +19,6 @@ class ExcelExporter {
     required List<Usuario> usuarios,
     required List<Ausencia> ausencias,
   }) async {
-    final scaffold = ScaffoldMessenger.of(context);
     try {
       final fecha = DateFormat('yyyy-MM-dd').format(DateTime.now());
       final nombreFichero = 'Todos_los_Grupos_$fecha.xlsx';
@@ -46,8 +46,11 @@ class ExcelExporter {
         .toList();
 
       if (usuariosFiltrados.isEmpty) {
-        scaffold.showSnackBar(
-          const SnackBar(content: Text('No hay usuarios para exportar')),
+        AppSnackBar.show(
+          context,
+          message: 'No hay usuarios para exportar',
+          backgroundColor: Colors.orange.shade600,
+          icon: Icons.error_outline,
         );
         return;
       }
@@ -134,12 +137,18 @@ class ExcelExporter {
         ..createSync(recursive: true)
         ..writeAsBytesSync(bytes);
 
-      scaffold.showSnackBar(
-        SnackBar(content: Text('✅ Excel guardado en: $path')),
+      AppSnackBar.show(
+        context,
+        message: 'Excel guardado en: $path',
+        backgroundColor: Colors.green.shade600,
+        icon: Icons.check_circle,
       );
     } catch (e) {
-      scaffold.showSnackBar(
-        SnackBar(content: Text('Error al generar Excel de todos los grupos: $e')),
+      AppSnackBar.show(
+        context,
+        message: 'Error al generar el excel',
+        backgroundColor: Colors.red.shade600,
+        icon: Icons.error_outline,
       );
     }
   }
@@ -151,7 +160,6 @@ class ExcelExporter {
     required List<Usuario> usuarios,
     required List<Ausencia> ausencias,
   }) async {
-    final scaffold = ScaffoldMessenger.of(context);
 
     try {
       final fecha = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -231,12 +239,18 @@ class ExcelExporter {
         ..createSync(recursive: true)
         ..writeAsBytesSync(bytes);
 
-      scaffold.showSnackBar(
-        SnackBar(content: Text('✅ Excel guardado en: $path')),
+      AppSnackBar.show(
+        context,
+        message: 'Excel guardado en: $path',
+        backgroundColor: Colors.green.shade600,
+        icon: Icons.check_circle,
       );
     } catch (e) {
-      scaffold.showSnackBar(
-        SnackBar(content: Text('Error al generar Excel: $e')),
+      AppSnackBar.show(
+        context,
+        message: 'Error al generar el excel',
+        backgroundColor: Colors.red.shade600,
+        icon: Icons.error_outline,
       );
     }
   }

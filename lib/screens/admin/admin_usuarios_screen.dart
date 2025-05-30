@@ -5,6 +5,7 @@ import 'package:riber_republic_fichaje_app/service/grupo_service.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
 import 'package:riber_republic_fichaje_app/widgets/admin/admin_crear_usuario_dialog.dart';
 import 'package:riber_republic_fichaje_app/widgets/admin/admin_editar_usuario_dialog.dart';
+import 'package:riber_republic_fichaje_app/widgets/snackbar.dart';
 
 class AdminUsuariosScreen extends StatefulWidget {
   const AdminUsuariosScreen({super.key});
@@ -106,8 +107,11 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
     ).then((created) {
       if (created == true) {
         _recargar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Usuario creado correctamente')),
+        AppSnackBar.show(
+          context,
+          message: 'Usuario creado',
+          backgroundColor: Colors.green.shade600,
+          icon: Icons.check_circle,
         );
       }
     });
@@ -156,8 +160,11 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
     ).then((edited) {
       if (edited == true) {
         _recargar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Usuario actualizado')),
+        AppSnackBar.show(
+          context,
+          message: 'Usuario actualizado',
+          backgroundColor: Colors.green.shade600,
+          icon: Icons.check_circle,
         );
       }
     });
@@ -245,12 +252,18 @@ class AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final filtrados = List<Usuario>.from(_filtros)
+    ..sort((a, b) {
+      final nameA = '${a.nombre} ${a.apellido1}'.toLowerCase();
+      final nameB = '${b.nombre} ${b.apellido1}'.toLowerCase();
+      return nameA.compareTo(nameB);
+    });
     // Filtra los usuarios activos
-    final activos = _filtros
+    final activos = filtrados
         .where((u) => u.estado == Estado.activo)
         .toList();
     // Filtra los usuarios inactivos
-    final inactivos = _filtros
+    final inactivos = filtrados
         .where((u) => u.estado != Estado.activo)
         .toList();
     

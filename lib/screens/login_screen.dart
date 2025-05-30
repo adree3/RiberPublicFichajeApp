@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
 import 'package:riber_republic_fichaje_app/service/auth_service.dart';
+import 'package:riber_republic_fichaje_app/widgets/snackbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/usuario_provider.dart';
 
@@ -52,8 +53,11 @@ class _LoginScreenState extends State<LoginScreen> {
         _loading = false;
         _timeoutError = true;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('La conexión tardó demasiado.'))
+      AppSnackBar.show(
+        context,
+        message: 'Tiempo de conexión alcanzado',
+        backgroundColor: Colors.orange.shade600,
+        icon: Icons.error_outline,
       );
     } catch (e) {
       setState(() => _loading = false);

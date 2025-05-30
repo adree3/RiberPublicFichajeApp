@@ -8,6 +8,7 @@ import 'package:riber_republic_fichaje_app/service/grupo_service.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
 import 'package:riber_republic_fichaje_app/service/ausencia_service.dart';
 import 'package:riber_republic_fichaje_app/widgets/admin/exportar_excel.dart';
+import 'package:riber_republic_fichaje_app/widgets/snackbar.dart';
 
 class AdminGruposScreen extends StatefulWidget {
   const AdminGruposScreen({super.key});
@@ -57,9 +58,19 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
     if (_filtroGrupo != null) {
       return [_filtroGrupo!];
     }
+
+    // Extraemos Sin Asignar
     final sinAsignar = _grupos.firstWhere((g) => g.nombre == 'Sin Asignar');
-    final otros = _grupos.where((g) => g.nombre != 'Sin Asignar').toList();
+
+    // Todos los demás, ordenados alfabéticamente (case-insensitive)
+    final otros = _grupos
+      .where((g) => g.nombre != 'Sin Asignar')
+      .toList()
+      ..sort((a, b) => a.nombre.toLowerCase().compareTo(b.nombre.toLowerCase()));
+
+    // Añadimos Sin Asignar al final
     otros.add(sinAsignar);
+
     return otros;
   }
 
@@ -270,8 +281,11 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
                                   final confirmar = await _mostrarConfirmacion(context, grupo, scheme);
                                   if (confirmar == true) {
                                     await GrupoService.eliminarGrupo(grupo.id!);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Grupo eliminado')),
+                                    AppSnackBar.show(
+                                      context,
+                                      message: 'Grupo eliminado',
+                                      backgroundColor: Colors.green.shade600,
+                                      icon: Icons.check_circle,
                                     );
                                     _recargar();
                                   }
@@ -429,13 +443,17 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
   Future<void> _EditarGrupoDialogo(Grupo grupo) async {
     final scheme = Theme.of(context).colorScheme;
     final nombreCtrl = TextEditingController(text: grupo.nombre);
-    final _formKey   = GlobalKey<FormState>();
+    final _formKey = GlobalKey<FormState>();
 
-    final buscarCtrl   = TextEditingController();
-    final buscarFocus  = FocusNode();
+    final buscarCtrl = TextEditingController();
+    final buscarFocus = FocusNode();
     final suggestionsCtrl = SuggestionsController<Usuario>();
 
     List<Usuario> usuarios = _usuarios.where((u) => u.grupoId == grupo.id).toList();
+
+    final esMovil = MediaQuery.of(context).size.width < 600;
+    final dialogoAncho = esMovil ? 320.0 : 380.0;
+    final dialogoAltura = esMovil ? 350.0 : 500.0;
 
     await showDialog(
       context: context,
@@ -458,8 +476,8 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
               ),
             ),
             content: SizedBox(
-              width: 320,
-              height: 350,
+              width: dialogoAncho,
+              height: dialogoAltura,
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -559,7 +577,7 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
                         itemBuilder: (ctx, i) {
                           final usuario = usuarios[i];
                           return ListTile(
-                            title: Text(usuario.email),
+                            title: Text('${i+1}.  ${usuario.email}'),
                             trailing: IconButton(
                               icon:
                                   Icon(Icons.remove_circle, color: scheme.error),
@@ -622,15 +640,18 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
                                     usuariosIds: usuariosIds);
                                 Navigator.of(ctx).pop();
                                 await _recargar();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('Grupo actualizado')),
+                                AppSnackBar.show(
+                                  context,
+                                  message: 'Grupo actualizado correctamente',
+                                  backgroundColor: Colors.green.shade600,
+                                  icon: Icons.check_circle,
                                 );
                               } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content:
-                                          Text('Error al actualizar: $e')),
+                                AppSnackBar.show(
+                                  context,
+                                  message: 'Error al actualizar el grupo',
+                                  backgroundColor: Colors.red.shade600,
+                                  icon: Icons.error_outline,
                                 );
                               }
                             },
@@ -658,6 +679,10 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
     final suggestionsCtrl = SuggestionsController<Usuario>();
     List<Usuario> usuarios = [];
 
+    final esMovil = MediaQuery.of(context).size.width < 600;
+    final dialogoAncho = esMovil ? 320.0 : 380.0;
+    final dialogoAltura = esMovil ? 350.0 : 500.0;
+
     await showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -681,8 +706,8 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
               ),
             ),
             content: SizedBox(
-              width: 320,
-              height: 350,
+              width: dialogoAncho,
+              height: dialogoAltura,
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -780,7 +805,7 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
                         itemBuilder: (ctx, i) {
                           final usuario = usuarios[i];
                           return ListTile(
-                            title: Text(usuario.email),
+                            title: Text('${i+1}.  ${usuario.email}'),
                             trailing: IconButton(
                               icon: Icon(Icons.remove_circle, color: scheme.error),
                               onPressed: () {
@@ -835,12 +860,18 @@ class AdminGruposScreenState extends State<AdminGruposScreen> {
                                 );
                                 Navigator.of(ctx).pop();
                                 await _recargar();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Grupo creado')),
+                                AppSnackBar.show(
+                                  context,
+                                  message: 'Grupo creado',
+                                  backgroundColor: Colors.green.shade600,
+                                  icon: Icons.check_circle,
                                 );
                               } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Error al crear: $e')),
+                                AppSnackBar.show(
+                                  context,
+                                  message: 'Error al crear el grupo',
+                                  backgroundColor: Colors.red.shade600,
+                                  icon: Icons.error_outline,
                                 );
                               }
                             },

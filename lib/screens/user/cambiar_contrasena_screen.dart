@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:riber_republic_fichaje_app/providers/usuario_provider.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
 import 'package:riber_republic_fichaje_app/utils/excepciones/credenciales_invalidas.dart';
+import 'package:riber_republic_fichaje_app/widgets/snackbar.dart';
 
 class CambiarContrasenaScreen extends StatefulWidget {
   const CambiarContrasenaScreen({super.key});
@@ -44,8 +45,11 @@ class _CambiarContrasenaScreenState extends State<CambiarContrasenaScreen> {
     try {
       await UsuarioService.cambiarContrasena(usuario!.id, _contrasenaActual.text.trim(), _nuevaContrasena.text.trim());
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Contraseña actualizada'))
+      AppSnackBar.show(
+        context,
+        message: 'Contraseña actualizada',
+        backgroundColor: Colors.green.shade600,
+        icon: Icons.check_circle,
       );
       Navigator.of(context).pop();
     } on CredenciaslesInvalidasException catch (e){
@@ -53,8 +57,11 @@ class _CambiarContrasenaScreenState extends State<CambiarContrasenaScreen> {
         _errorContrasenaActual = e.message;
        });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}'))
+      AppSnackBar.show(
+        context,
+        message: 'Error al actualizar la contraseña',
+        backgroundColor: Colors.red.shade600,
+        icon: Icons.error_outline,
       );
     } finally {
       //siempre pone el loading a false para que no se quede pillado el circularProgress

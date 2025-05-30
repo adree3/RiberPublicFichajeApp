@@ -3,6 +3,7 @@ import 'package:riber_republic_fichaje_app/model/grupo.dart';
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
 import 'package:riber_republic_fichaje_app/service/grupo_service.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
+import 'package:riber_republic_fichaje_app/widgets/snackbar.dart';
 
 typedef OnUsuarioCreated = void Function();
 
@@ -84,8 +85,11 @@ class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
   Future<void> _crearUsuario() async {
     if (!_formKey.currentState!.validate()) return;
     if (_rolSeleccionado == null || _grupoSeleccionado == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecciona rol y grupo')),
+      AppSnackBar.show(
+        context,
+        message: 'Selecciona rol y grupo',
+        backgroundColor: Colors.orange.shade600,
+        icon: Icons.error_outline,
       );
       return;
     }
@@ -112,8 +116,11 @@ class _AdminUsuarioCrearDialogoState extends State<AdminUsuarioCrearDialogo> {
       // con esto confirmo a la clase padre de que se a creado el usuario para que haga un refresh
       widget.onCreated();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al crear el usuario')),
+      AppSnackBar.show(
+        context,
+        message: 'Error al crear el usuario',
+        backgroundColor: Colors.red.shade600,
+        icon: Icons.error_outline,
       );
     } finally {
       // mounted es una propiedad de Setstate que sirve para saber si el state esta "montado" 

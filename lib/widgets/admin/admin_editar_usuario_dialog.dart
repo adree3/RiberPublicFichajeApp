@@ -3,6 +3,7 @@ import 'package:riber_republic_fichaje_app/model/grupo.dart';
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
 import 'package:riber_republic_fichaje_app/service/grupo_service.dart';
 import 'package:riber_republic_fichaje_app/service/usuario_service.dart';
+import 'package:riber_republic_fichaje_app/widgets/snackbar.dart';
 
 typedef OnUsuarioEdited = void Function();
 
@@ -124,8 +125,11 @@ class _AdminUsuarioEditarDialogState extends State<AdminUsuarioEditarDialog> {
       await UsuarioService.editarUsuario(widget.usuario.id, usuarioEditar, grupoId);
       widget.onEdited();
     } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al actualizar el usuario')),
+      AppSnackBar.show(
+        context,
+        message: 'Error al actualizar el usuario',
+        backgroundColor: Colors.red.shade600,
+        icon: Icons.error_outline,
       );
     } finally {
       if (mounted) setState(() => _loading = false);

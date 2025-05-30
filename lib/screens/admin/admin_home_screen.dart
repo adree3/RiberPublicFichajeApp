@@ -6,6 +6,7 @@ import 'package:riber_republic_fichaje_app/screens/admin/admin_usuarios_screen.d
 import 'package:riber_republic_fichaje_app/screens/admin/admin_ausencias_screen.dart';
 import 'package:riber_republic_fichaje_app/service/ausencia_service.dart';
 import 'package:riber_republic_fichaje_app/widgets/admin/responsive_scaffold.dart';
+import 'package:riber_republic_fichaje_app/widgets/snackbar.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -66,12 +67,18 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             try {
               await AusenciaService.generarAusencias();
               _ausenciasKey.currentState?.recargar();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Ausencias generadas')),
+              AppSnackBar.show(
+                context,
+                message: 'Ausencias generadas',
+                backgroundColor: Colors.green.shade600,
+                icon: Icons.check_circle,
               );
             } catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error: $e')),
+              AppSnackBar.show(
+                context,
+                message: 'Error al generar las ausencias',
+                backgroundColor: Colors.red.shade600,
+                icon: Icons.error_outline,
               );
             }
           },

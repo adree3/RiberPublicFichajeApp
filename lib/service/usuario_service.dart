@@ -35,6 +35,19 @@ class UsuarioService {
     }
   }
 
+  /// Obtiene los empleados activos
+  /// GET /usuarios/activos
+  Future<List<Usuario>> getEmpleadosActivos() async {
+    final response = await ApiClient.get(Uri.parse('$baseUrl/empleadosActivos'));
+    if (response.statusCode == 200) {
+      final utf8Body = utf8.decode(response.bodyBytes);
+      final List<dynamic> lista = jsonDecode(utf8Body);
+      return lista.map((json) => Usuario.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al obtener usuarios');
+    }
+  }
+
   /// Obtiene los horarios de hoy de un usuario
   /// GET /usuarios/{idUsuario}/horarioHoy
   static Future<HorarioHoy> getHorarioDeHoy(int idUsuario) async {

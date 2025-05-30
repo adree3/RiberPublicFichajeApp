@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:riber_republic_fichaje_app/model/usuario.dart';
 import 'package:riber_republic_fichaje_app/model/ausencia.dart';
-import 'package:riber_republic_fichaje_app/service/ausencia_service.dart'; 
+import 'package:riber_republic_fichaje_app/service/ausencia_service.dart';
+import 'package:riber_republic_fichaje_app/widgets/snackbar.dart'; 
 
 class JustificarAusenciaScreen extends StatefulWidget {
   final Usuario usuario;
@@ -43,13 +44,19 @@ class _JustificarAusenciaScreenState extends State<JustificarAusenciaScreen> {
         detalles: _detallesCtrl.text.trim(),
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ausencia generada correctamente')),
+      AppSnackBar.show(
+        context,
+        message: 'Ausencia generada',
+        backgroundColor: Colors.green.shade600,
+        icon: Icons.check_circle,
       );
       Navigator.of(context).pop();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error')),
+      AppSnackBar.show(
+        context,
+        message: 'Error al generar la ausencia',
+        backgroundColor: Colors.red.shade600,
+        icon: Icons.error_outline,
       );
     } finally {
       if (mounted){
