@@ -164,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   });
                                 },
                               ),
-                              Text("Guardar sesión"),
+                              Text("Guardar sesión durante 30 días"),
                             ],
                           ),
                         ),

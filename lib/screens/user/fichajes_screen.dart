@@ -166,6 +166,19 @@ class FichajesScreenState extends State<FichajesScreen> {
                   );
                 }
                 final todosFichajes = fichSnap.data!;
+
+                 if (todosFichajes.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: Text(
+                        'No se han registrado fichajes por el momento.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                  );
+                }
                 // con la lista de fichajes, suma todas las horas trabajadas
                 final trabajadoTotalPorDia = FichajeUtils.sumarHorasPorDia(todosFichajes);
                 // coge el map de trabajadoTotalPorDia y lo ordena, para poner primero la reciente a la mas antigua.

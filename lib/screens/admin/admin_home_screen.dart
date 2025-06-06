@@ -69,7 +69,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               _ausenciasKey.currentState?.recargar();
               AppSnackBar.show(
                 context,
-                message: 'Ausencias generadas',
+                message: 'Ausencias generadas de los ultimos 30 días',
                 backgroundColor: Colors.green.shade600,
                 icon: Icons.check_circle,
               );

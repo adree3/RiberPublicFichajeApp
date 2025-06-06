@@ -1,8 +1,8 @@
 import 'dart:math';
 
 class GeofenceConfiguracion {
-  static const double latitude   = 41.65533756030337;
-  static const double longitud  = -4.707692892236362;
+  static const double latitude   = 41.6555543449889;
+  static const double longitud  = -4.7080354375460525;
   static const double radioMetros = 50;
 } 
 //41.66500903262423, -4.7238655524719695 instituto
