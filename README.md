@@ -4,7 +4,7 @@
 - [Riber Public Fichajes API](https://github.com/adree3/RiberPublicFichajeApi)
 
 ## 📦 **Descripción del Proyecto**  
-RiberRepublicFichaje es una aplicación multiplataforma para el control horario en RiberRepublic. Incluye:
+RiberRepublicFichaje es una aplicación multiplataforma para el control horario en RiberPublic. Incluye:
 
 - **App móvil** en Flutter/Dart  
 - **API REST** en Spring Boot/Java  
