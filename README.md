@@ -1,13 +1,13 @@
-# 🚀 **RIBER REPUBLIC FICHAJE (APP)**
+# 🚀 **RIBER PUBLIC FICHAJE (APP)**
 
 ## 🔗 Repositorio al API
 - [Riber Public Fichajes API](https://github.com/adree3/RiberPublicFichajeApi)
 
 ## 📦 **Descripción del Proyecto**  
-RiberRepublicFichaje es una aplicación multiplataforma para el control horario en RiberPublic. Incluye:
+RiberPublicFichaje es una aplicación multiplataforma para el control horario en RiberPublic. Incluye:
 
-- **App móvil** en Flutter/Dart  
-- **API REST** en Spring Boot/Java  
+- **App multiplataforma** con Flutter/Dart  
+- **API REST** con Spring Boot/Java  
 - Integración **NFC** para fichajes
 - **Gestión** de usuarios, grupos, horarios y ausencias  
 - Exportación de informes en **Excel**  
