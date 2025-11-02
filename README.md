@@ -16,12 +16,13 @@ RiberPublicFichaje es una aplicación multiplataforma para el control horario en
 Mejorar la gestión del tiempo de trabajo, implementando el registro de entradas/salidas con NFC.
 
 ## ⚙️ **Funcionalidades Principales**  
-✅ **Fichajes NFC**  
+✅ **Fichajes NFC con geolocalización**  
 ✅ **Gestión de Usuarios y Grupos**  
 ✅ **Control de Ausencias** (vacaciones, permisos, retrasos)  
 ✅ **Asignación de Horarios** por grupo y día  
 ✅ **Paneles de Administración** para empleados y jefes  
 ✅ **Exportación a Excel** de datos de grupos, usuarios y ausencias  
+  
 
 ## 🧱 **Tecnologías Utilizadas**  
 ### 🔹 **Frontend (App Flutter)**  
